@@ -77,10 +77,7 @@ int add_kv_bintree_node(kv_binarytree_node *n, char *k, char *v) {
 	// It's up to the user to ensure the keys are null-terminated
 	cmp = strcmp(k, n->key);
 
-	if (cmp == 0) {
-		// Keys match!
-		return FALSE;
-	}
+	if (cmp == 0) return FALSE;
 
 	if (cmp < 0) {
 		return add_kv_bintree_node(n->left, k, v);
@@ -100,6 +97,20 @@ int add_kv_bintree(kv_binarytree *kv, char *k, void *v) {
 		kv->size++;
 	}
 	return result;
+}
+
+int has_kv_bintree_node(kv_binarytree_node *n, char *k) {
+	int cmp;
+
+	if (n == NULL) return FALSE;
+
+	// Not using strncmp(), since the length bounds cannot be known
+	// It's up to the user to ensure the keys are null-terminated
+	cmp = strcmp(k, n->key);
+
+	if (cmp == 0) return TRUE;
+
+	return has_kv_bintree_node(n->left, k) || has_kv_bintree_node(n->left, k);
 }
 
 int has_kv_bintree(kv_binarytree *kv, char *k) {
