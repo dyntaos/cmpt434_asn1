@@ -61,7 +61,7 @@ kv_binarytree_node *alloc_node_kv_bintree(void) {
 	return n;
 }
 
-int add_kv_bintree_node(kv_binarytree_node *n, char *k, char *v) {
+boolean add_kv_bintree_node(kv_binarytree_node *n, char *k, char *v) {
 	int cmp;
 
 	if (n == NULL) {
@@ -86,8 +86,8 @@ int add_kv_bintree_node(kv_binarytree_node *n, char *k, char *v) {
 	}
 }
 
-int add_kv_bintree(kv_binarytree *kv, char *k, void *v) {
-	int result;
+boolean add_kv_bintree(kv_binarytree *kv, char *k, void *v) {
+	boolean result;
 
 	if (kv == NULL) return FALSE;
 
@@ -99,7 +99,7 @@ int add_kv_bintree(kv_binarytree *kv, char *k, void *v) {
 	return result;
 }
 
-int has_kv_bintree_node(kv_binarytree_node *n, char *k) {
+boolean has_kv_bintree_node(kv_binarytree_node *n, char *k) {
 	int cmp;
 
 	if (n == NULL) return FALSE;
@@ -110,30 +110,56 @@ int has_kv_bintree_node(kv_binarytree_node *n, char *k) {
 
 	if (cmp == 0) return TRUE;
 
-	return has_kv_bintree_node(n->left, k) || has_kv_bintree_node(n->left, k);
+	if (cmp < 0) {
+		return has_kv_bintree_node(n->left, k);
+	} else {
+		return has_kv_bintree_node(n->right, k);
+	}
 }
 
-int has_kv_bintree(kv_binarytree *kv, char *k) {
+boolean has_kv_bintree(kv_binarytree *kv, char *k) {
 	if (kv == NULL) return FALSE;
 	return has_kv_bintree_node(kv->root, k);
 }
 
-void *get_kv_bintree(kv_binarytree *kv, char *k) {
+boolean *get_kv_bintree_node(kv_binarytree_node *n, char *k, void **v) {
+	int cmp;
 
+	if (n == NULL) return FALSE;
+
+	// Not using strncmp(), since the length bounds cannot be known
+	// It's up to the user to ensure the keys are null-terminated
+	cmp = strcmp(k, n->key);
+
+	if (cmp == 0) {
+		*v = n->value;
+		return TRUE;
+	}
+
+	if (cmp < 0) {
+		return get_kv_bintree_node(n->left, k, v);
+	} else {
+		return get_kv_bintree_node(n->right, k, v);
+	}
+}
+
+boolean *get_kv_bintree(kv_binarytree *kv, char *k, void **v) {
+	if (kv == NULL) return FALSE;
+	return get_kv_bintree_node(kv->root, k, v);
 }
 
 void iter_init_kv_bintree(kv_binarytree *kv) {
 
 }
 
-int iter_get_kv_bintree(kv_binarytree *kv, char *k, void *v) {
+boolean iter_get_kv_bintree(kv_binarytree *kv, char *k, void *v) {
 
 }
 
-int iter_next_kv_bintree(kv_binarytree *kv) {
+boolean iter_next_kv_bintree(kv_binarytree *kv) {
 
 }
 
-int remove_kv_bintree(kv_binarytree *kv, char *k, void *v) {
+boolean remove_kv_bintree(kv_binarytree *kv, char *k, void *v) {
 
 }

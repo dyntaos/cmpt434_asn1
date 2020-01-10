@@ -30,15 +30,18 @@ typedef struct kv_binarytree_t {
 } kv_binarytree;
 
 
+typedef int boolean;
+
+
 kv_binarytree *alloc_kv_bintree(void);
 void free_kv_bintree(kv_binarytree *kv, void (*free_key)(void*), void (*free_value)(void*));
-int add_kv_bintree(kv_binarytree *kv, char *k, void *v);
-int has_kv_bintree(kv_binarytree *kv, char *k);
-void *get_kv_bintree(kv_binarytree *kv, char *k);
+boolean add_kv_bintree(kv_binarytree *kv, char *k, void *v);
+boolean has_kv_bintree(kv_binarytree *kv, char *k);
+void *get_kv_bintree(kv_binarytree *kv, char *k, void **v);
 void iter_init_kv_bintree(kv_binarytree *kv);
-int iter_get_kv_bintree(kv_binarytree *kv, char *k, void *v);
-int iter_next_kv_bintree(kv_binarytree *kv);
-int remove_kv_bintree(kv_binarytree *kv, char *k, void *v);
+boolean iter_get_kv_bintree(kv_binarytree *kv, char *k, void *v);
+boolean iter_next_kv_bintree(kv_binarytree *kv);
+boolean remove_kv_bintree(kv_binarytree *kv, char *k, void *v);
 
 
 #endif //_KV_BINTREE_H
