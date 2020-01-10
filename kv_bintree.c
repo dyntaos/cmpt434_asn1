@@ -170,60 +170,25 @@ boolean get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
 	return get_kv_bintree_node(kv->root, key, value);
 }
 
-kv_binarytree_node *get_left_node_kv_bintree(kv_binarytree_node *node) {
-	if (node->left == NULL) return node;
-	return get_left_node_kv_bintree(node->left);
-}
-
 uint32_t size_kv_bintree(kv_binarytree *kv) {
 	if (kv == NULL) return 0;
 	return kv->size;
 }
 
-boolean iter_init_kv_bintree(kv_binarytree *kv) {
-	if (kv == NULL) return FALSE;
+void iterator_next_kv_bintree_node(kv_binarytree_node *node, void (iter_function)(char *k, void *v)) {
+	if (node == NULL) return;
 
-	kv->iterator = get_left_node_kv_bintree(kv->root);
-	kv->prev_iterator = NULL;
-	kv->iterator_state = on_left;
+	iterator_next_kv_bintree_node(node->left, iter_function);
+	iter_function(node->key, node->value);
+	iterator_next_kv_bintree_node(node->right, iter_function);
 }
 
-boolean iter_get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
+boolean iterator_next_kv_bintree(kv_binarytree *kv, void (iter_function)(char *k, void *v)) {
 	if (kv == NULL) return FALSE;
-	if (kv->iterator_state == uninitialized) return FALSE;
-	if (kv->iterator == NULL) return FALSE;
+	if (kv->root == NULL) return FALSE;
 
-	*value = kv->iterator->value;
+	iterator_next_kv_bintree_node(kv->root, iter_function);
 	return TRUE;
-}
-
-boolean iter_next_kv_bintree(kv_binarytree *kv) {
-	kv_binarytree_node *curr;
-	if (kv == NULL) return FALSE;
-	if (kv->iterator_state == uninitialized) return FALSE;
-
-	curr = kv->iterator;
-
-	// TODO:
-	while (kv->iterator == NULL) {
-		switch (kv->iterator_state) {
-			case on_left:
-				kv->iterator_state = on_self;
-
-				kv->iterator = kv->iterator->parent;
-				break;
-			case on_self:
-				kv->iterator_state = on_right;
-
-				break;
-			case on_right:
-				kv->iterator_state = on_left;
-
-				break;
-		}
-	}
-
-	kv->prev_iterator = curr;
 }
 
 boolean remove_kv_bintree(kv_binarytree *kv, char *key, void *value) {
@@ -233,7 +198,16 @@ boolean remove_kv_bintree(kv_binarytree *kv, char *key, void *value) {
 void print_in_order_kv_bintree_node(kv_binarytree_node *node) {
 	if (node == NULL) return;
 	print_in_order_kv_bintree_node(node->left);
-	printf("=========================\nAddress: %p\nkey: '%s'\t\tvalue: '%s'\nleft: %p\t\tright: %p\t\tparent: %p\n", node, node->key, node->value, node->left, node->right, node->parent);
+	printf("=========================\nAddress: %p"
+		"\nkey: '%s'\t\tvalue: '%s'\nleft: %p\t\t"
+		"right: %p\t\tparent: %p\n",
+		node,
+		node->key,
+		node->value,
+		node->left,
+		node->right,
+		node->parent
+	);
 	print_in_order_kv_bintree_node(node->right);
 }
 

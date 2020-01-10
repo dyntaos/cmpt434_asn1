@@ -1,6 +1,12 @@
 #include <kv_bintree.h>
 #include <stdio.h>
 
+
+void tree_iterator(char *k, void *v) {
+	printf("\t\"%s\": \"%s\"\n", k, (char*) v);
+}
+
+
 int main(int argc, char *argv) {
 	kv_binarytree *tree;
 	char *temp;
@@ -65,6 +71,8 @@ int main(int argc, char *argv) {
 
 	get_kv_bintree(tree, "ttt", (void**) &temp);
 	printf("Get \"ttt\" = %s\n\n", temp);
+
+	iterator_next_kv_bintree(tree, tree_iterator);
 
 return 0;
 }
