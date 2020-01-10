@@ -21,7 +21,7 @@ typedef struct kv_binarytree_t {
 
 
 kv_binarytree *alloc_kv_bintree(void);
-void free_kv_bintree(kv_binarytree *kv, void (*free_value)(void*));
+void free_kv_bintree(kv_binarytree *kv, void (*free_key)(void*), void (*free_value)(void*));
 int add_kv_bintree(kv_binarytree *kv, char *k, void *v);
 int has_kv_bintree(kv_binarytree *kv, char *k);
 void *get_kv_bintree(kv_binarytree *kv, char *k);
