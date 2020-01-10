@@ -1,6 +1,7 @@
 #include <kv_bintree.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 
 kv_binarytree *alloc_kv_bintree(void) {
@@ -15,6 +16,7 @@ kv_binarytree *alloc_kv_bintree(void) {
 	kv->root = NULL;
 	kv->iterator = NULL;
 	kv->prev_iterator = NULL;
+	kv->iterator_state = uninitialized;
 	kv->size = 0;
 
 	return kv;
@@ -68,16 +70,18 @@ kv_binarytree_node *alloc_node_kv_bintree(void) {
 	return n;
 }
 
-boolean add_kv_bintree_node(kv_binarytree_node *node, kv_binarytree_node *parent, char *key, char *value) {
+boolean add_kv_bintree_node(kv_binarytree_node *node, kv_binarytree_node *parent, kv_binarytree_node **parent_node, char *key, char *value) {
 	int cmp;
 
 	if (node == NULL) {
 		node = alloc_node_kv_bintree();
 		if (node == NULL) return FALSE;
-
 		node->key = key;
 		node->value = value;
-		node->parent = p;
+		node->parent = parent;
+		if (parent_node != NULL) {
+			*parent_node = node;
+		}
 		return TRUE;
 	}
 
@@ -88,9 +92,9 @@ boolean add_kv_bintree_node(kv_binarytree_node *node, kv_binarytree_node *parent
 	if (cmp == 0) return FALSE;
 
 	if (cmp < 0) {
-		return add_kv_bintree_node(node->left, node, key, value);
+		return add_kv_bintree_node(node->left, node,  &(node->left), key, value);
 	} else {
-		return add_kv_bintree_node(node->right, node, key, value);
+		return add_kv_bintree_node(node->right, node, &(node->right), key, value);
 	}
 }
 
@@ -99,7 +103,17 @@ boolean add_kv_bintree(kv_binarytree *kv, char *key, void *value) {
 
 	if (kv == NULL) return FALSE;
 
-	result = add_kv_bintree_node(kv, NULL, key, value);
+	if (kv->root == NULL) {
+		kv->root = alloc_node_kv_bintree();
+		if (kv->root == NULL) return FALSE;
+
+		kv->root->key = key;
+		kv->root->value = value;
+		kv->size++;
+		return TRUE;
+	} else {
+		result = add_kv_bintree_node(kv->root, NULL, NULL, key, value);
+	}
 
 	if (result) {
 		kv->size++;
@@ -130,7 +144,7 @@ boolean has_kv_bintree(kv_binarytree *kv, char *key) {
 	return has_kv_bintree_node(kv->root, key);
 }
 
-boolean *get_kv_bintree_node(kv_binarytree_node *node, char *key, void **value) {
+boolean get_kv_bintree_node(kv_binarytree_node *node, char *key, void **value) {
 	int cmp;
 
 	if (node == NULL) return FALSE;
@@ -140,7 +154,7 @@ boolean *get_kv_bintree_node(kv_binarytree_node *node, char *key, void **value) 
 	cmp = strcmp(key, node->key);
 
 	if (cmp == 0) {
-		*value = node->value;
+		*((char**) value) = (char*) node->value;
 		return TRUE;
 	}
 
@@ -151,40 +165,80 @@ boolean *get_kv_bintree_node(kv_binarytree_node *node, char *key, void **value) 
 	}
 }
 
-boolean *get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
+boolean get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
 	if (kv == NULL) return FALSE;
 	return get_kv_bintree_node(kv->root, key, value);
 }
-
 
 kv_binarytree_node *get_left_node_kv_bintree(kv_binarytree_node *node) {
 	if (node->left == NULL) return node;
 	return get_left_node_kv_bintree(node->left);
 }
 
+uint32_t size_kv_bintree(kv_binarytree *kv) {
+	if (kv == NULL) return 0;
+	return kv->size;
+}
 
 boolean iter_init_kv_bintree(kv_binarytree *kv) {
 	if (kv == NULL) return FALSE;
 
 	kv->iterator = get_left_node_kv_bintree(kv->root);
 	kv->prev_iterator = NULL;
+	kv->iterator_state = on_left;
 }
 
 boolean iter_get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
 	if (kv == NULL) return FALSE;
+	if (kv->iterator_state == uninitialized) return FALSE;
 	if (kv->iterator == NULL) return FALSE;
+
 	*value = kv->iterator->value;
 	return TRUE;
 }
 
 boolean iter_next_kv_bintree(kv_binarytree *kv) {
+	kv_binarytree_node *curr;
 	if (kv == NULL) return FALSE;
+	if (kv->iterator_state == uninitialized) return FALSE;
 
-	kv->prev_iterator = kv->iterator;
+	curr = kv->iterator;
 
-	//TODO: Set kv->iterator
+	// TODO:
+	while (kv->iterator == NULL) {
+		switch (kv->iterator_state) {
+			case on_left:
+				kv->iterator_state = on_self;
+
+				kv->iterator = kv->iterator->parent;
+				break;
+			case on_self:
+				kv->iterator_state = on_right;
+
+				break;
+			case on_right:
+				kv->iterator_state = on_left;
+
+				break;
+		}
+	}
+
+	kv->prev_iterator = curr;
 }
 
 boolean remove_kv_bintree(kv_binarytree *kv, char *key, void *value) {
 
+}
+
+void print_in_order_kv_bintree_node(kv_binarytree_node *node) {
+	if (node == NULL) return;
+	print_in_order_kv_bintree_node(node->left);
+	printf("=========================\nAddress: %p\nkey: '%s'\t\tvalue: '%s'\nleft: %p\t\tright: %p\t\tparent: %p\n", node, node->key, node->value, node->left, node->right, node->parent);
+	print_in_order_kv_bintree_node(node->right);
+}
+
+void print_in_order_kv_bintree(kv_binarytree *kv) {
+	if (kv == NULL) return;
+	print_in_order_kv_bintree_node(kv->root);
+	printf("=========================\n\n");
 }

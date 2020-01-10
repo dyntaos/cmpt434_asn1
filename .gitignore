@@ -1,1 +1,3 @@
 *.pdf
+./build
+./kv_bintree_test
