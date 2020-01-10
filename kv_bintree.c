@@ -89,7 +89,7 @@ int add_kv_bintree_node(kv_binarytree_node *n, char *k, char *v) {
 int add_kv_bintree(kv_binarytree *kv, char *k, void *v) {
 	int result;
 
-	if (kv == NULL) return;
+	if (kv == NULL) return FALSE;
 
 	result = add_kv_bintree_node(kv, k, v);
 
@@ -114,7 +114,8 @@ int has_kv_bintree_node(kv_binarytree_node *n, char *k) {
 }
 
 int has_kv_bintree(kv_binarytree *kv, char *k) {
-
+	if (kv == NULL) return FALSE;
+	return has_kv_bintree_node(kv->root, k);
 }
 
 void *get_kv_bintree(kv_binarytree *kv, char *k) {
