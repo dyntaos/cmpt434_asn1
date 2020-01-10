@@ -3,7 +3,17 @@
 
 #include <stdint.h>
 
+#ifndef NULL
 #define NULL	0
+#endif
+
+#ifndef TRUE
+#define TRUE	1
+#endif
+
+#ifndef FALSE
+#define FALSE	0
+#endif
 
 
 typedef struct kv_binarytree_node_t kv_binarytree_node;
