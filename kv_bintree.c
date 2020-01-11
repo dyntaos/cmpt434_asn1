@@ -179,14 +179,72 @@ boolean get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
 
 
 
-boolean remove_kv_bintree(kv_binarytree *kv, char *key, void *value) {
+void delete_node_kv_bintree(kv_binarytree *kv, kv_binarytree_node *node) {
+	kv_binarytree_node *subtree;
+	boolean found_subtree = FALSE;
+
+	if (node->left == NULL) {
+		subtree = node->right;
+		found_subtree = TRUE;
+	} else if (node->right == NULL) {
+		subtree = node->left;
+		found_subtree = TRUE;
+	}
+
+	if (found_subtree) {
+		if (node->parent == NULL) {
+			kv->root = subtree;
+		} else if (node->parent->left == node) {
+			node->parent->left = subtree;
+			if (subtree != NULL) subtree->parent = node->parent;
+			free(node);
+		} else {
+			node->parent->right = subtree;
+			if (subtree != NULL) subtree->parent = node->parent;
+			free(node);
+		}
+	} else {
+		subtree = node->right;
+
+		while (subtree->left != NULL) {
+			subtree = subtree->left;
+		}
+
+		node->key = subtree->key;
+		node->value = subtree->value;
+		delete_node_kv_bintree(kv, subtree);
+	}
+}
+
+void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, char *key) {
+	int cmp;
+	void *value;
+
+	if (node == NULL) return NULL;
+
+	// Not using strncmp(), since the length bounds cannot be known
+	// It's up to the user to ensure the keys are null-terminated
+	cmp = strcmp(key, node->key);
+
+	if (cmp == 0) {
+		value = node->value;
+		delete_node_kv_bintree(kv, node);
+		kv->size--;
+		return value;
+	}
+
+	if (cmp < 0) {
+		return remove_kv_bintree_node(kv, node->left, key);
+	} else {
+		return remove_kv_bintree_node(kv, node->right, key);
+	}
+}
+
+void *remove_kv_bintree(kv_binarytree *kv, char *key) {
 	if (kv == NULL) return FALSE;
 	if (kv->root == NULL) return FALSE;
 
-	(void) key;
-	(void) value;
-	// TODO
-	return TRUE;
+	return remove_kv_bintree_node(kv, kv->root, key);
 }
 
 

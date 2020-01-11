@@ -43,7 +43,7 @@ boolean has_kv_bintree(kv_binarytree *kv, char *key);
 
 boolean get_kv_bintree(kv_binarytree *kv, char *key, void **value);
 
-boolean remove_kv_bintree(kv_binarytree *kv, char *key, void *value);
+void *remove_kv_bintree(kv_binarytree *kv, char *key);
 
 uint32_t size_kv_bintree(kv_binarytree *kv);
 

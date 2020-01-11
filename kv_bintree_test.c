@@ -85,5 +85,34 @@ int main(int argc, char *argv[]) {
 		cursor_get_kv_bintree(tree, &k, &v);
 		printf("Cursor key: \"%s\"  value: \"%s\"\n", k, (char*) v);
 	} while (cursor_next_kv_bintree(tree));
+
+	if (remove_kv_bintree(tree, "fake") == NULL) {
+		printf("Failed to delete key \"fake\", as expected\n\n");
+	}
+
+	printf("Delete key \"key1\"!\n\n");
+	if (remove_kv_bintree(tree, "key1") == NULL) {
+		printf("Failed to delete key \"key1\"...\n\n");
+	}
+
+	printf("Delete key \"a key 2\"...\n\n");
+	if (remove_kv_bintree(tree, "a key 2") == NULL) {
+		printf("Failed to delete key \"a key 2\"!\n\n");
+	}
+
+	printf("Delete key \"llllllllllll\"...\n\n");
+	if (remove_kv_bintree(tree, "llllllllllll") == NULL) {
+		printf("Failed to delete key \"llllllllllll\"!\n\n");
+	}
+
+	printf("Delete key \"ttt\"...\n\n");
+	if (remove_kv_bintree(tree, "ttt") == NULL) {
+		printf("Failed to delete key \"ttt\"!\n\n");
+	}
+
+
+	print_in_order_kv_bintree(tree);
+
+
 return 0;
 }
