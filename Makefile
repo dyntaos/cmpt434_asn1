@@ -12,7 +12,7 @@
 
 CC = gcc
 CFLAGS =
-CPPLAGS = -Wall -Wextra -pedantic -g
+CPPFLAGS = -Wall -Wextra -pedantic -g
 LDFLAGS =
 
 ARCH = $(shell uname -s)$(shell uname -m)
