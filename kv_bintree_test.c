@@ -7,9 +7,13 @@ void tree_iterator(char *k, void *v) {
 }
 
 
-int main(int argc, char *argv) {
+int main(int argc, char *argv[]) {
 	kv_binarytree *tree;
-	char *temp;
+	char *temp, *k;
+	void *v;
+
+	(void) argc;
+	(void) argv;
 
 	tree = alloc_kv_bintree();
 
@@ -72,7 +76,14 @@ int main(int argc, char *argv) {
 	get_kv_bintree(tree, "ttt", (void**) &temp);
 	printf("Get \"ttt\" = %s\n\n", temp);
 
-	iterator_next_kv_bintree(tree, tree_iterator);
+	iterator_func_kv_bintree(tree, tree_iterator);
 
+	printf("\n\n");
+
+	cursor_init_kv_bintree(tree);
+	do {
+		cursor_get_kv_bintree(tree, &k, &v);
+		printf("Cursor key: \"%s\"  value: \"%s\"\n", k, (char*) v);
+	} while (cursor_next_kv_bintree(tree));
 return 0;
 }

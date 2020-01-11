@@ -15,7 +15,6 @@
 #define FALSE	0
 #endif
 
-enum kv_bintree_iterator_state {uninitialized, on_left, on_self, on_right};
 
 typedef struct kv_binarytree_node_t kv_binarytree_node;
 
@@ -28,7 +27,6 @@ struct kv_binarytree_node_t {
 
 typedef struct kv_binarytree_t {
 	kv_binarytree_node *root, *iterator, *prev_iterator;
-	enum kv_bintree_iterator_state iterator_state;
 	uint32_t size;
 } kv_binarytree;
 
