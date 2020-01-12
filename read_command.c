@@ -47,12 +47,10 @@ command read_command(char **token1, char **token2) {
 			case 2:
 				*token1 = (char*) malloc(token_len + 1);
 				strcpy(*token1, token);
-				token1[token_len] = 0;
 				break;
 			case 3:
 				*token2 = (char*) malloc(token_len + 1);
 				strcpy(*token2, token);
-				token2[token_len] = 0;
 				break;
 			default:
 				free_command(token1, token2);

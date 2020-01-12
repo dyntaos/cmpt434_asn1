@@ -49,6 +49,9 @@ $(OBJ)/tcp_client.o: tcp_client.c
 $(OBJ)/read_command.o: read_command.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
 
-$(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o
+$(OBJ)/kv_packet.o: kv_packet.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
+
+$(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o $(OBJ)/kv_packet.o
 	$(CC) -o $@ $^ -lreadline
 	ln -fs $@ ./tcp_client
