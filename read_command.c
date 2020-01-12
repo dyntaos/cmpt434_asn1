@@ -18,7 +18,7 @@ command read_command(char **token1, char **token2) {
 
 	token = strtok(input, " ");
 	token_count = 0;
-	//free_command(token1, token2);
+	free_command(token1, token2);
 
 	while (token != NULL) {
 		token_count++;
@@ -41,7 +41,6 @@ command read_command(char **token1, char **token2) {
 				} else if (strcmp("quit", token) == 0) {
 					cmd = quit;
 				} else {
-					//free_command(token1, token2);
 					return invalid;
 				}
 				break;
@@ -69,8 +68,8 @@ command read_command(char **token1, char **token2) {
 }
 
 void free_command(char **token1, char **token2) {
-	free(token1);
-	free(token2);
+	free(*token1);
+	free(*token2);
 	*token1 = NULL;
 	*token2 = NULL;
 }
