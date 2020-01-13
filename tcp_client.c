@@ -15,6 +15,7 @@
 
 #include <arpa/inet.h>
 
+#include <kv_packet.h>
 #include <read_command.h>
 
 #define PORT "3490" // the port client will be connecting to
@@ -34,6 +35,8 @@ void *get_in_addr(struct sockaddr *sa) {
 int main(int argc, char *argv[]) {
 	char *t1 = 0, *t2 = 0;
 	command cmd;
+	void *packet = 0;
+	uint32_t packet_size = 0;
 	int sockfd;
 	//int numbytes;
 	//char buf[MAXDATASIZE];
@@ -54,7 +57,7 @@ int main(int argc, char *argv[]) {
 	hints.ai_socktype = SOCK_STREAM;
 
 
-	if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo("127.0.0.1", PORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -96,9 +99,15 @@ int main(int argc, char *argv[]) {
 
 		if (cmd == add && arg_count == 2) {
 			printf("Call add(%s, %s)\n", t1, t2);
-			if (send(sockfd, "Hello, world!", 13, 0) == -1) {
+
+			packet = create_client_packet(cmd, &packet_size, t1, t2);
+
+			if (send(sockfd, packet, packet_size, 0) == -1) {
 				perror("send");
 			}
+
+			free(packet);
+			packet = NULL;
 
 		} else if (cmd == get_value && arg_count == 1) {
 			printf("Call getvalue(%s)\n", t1);

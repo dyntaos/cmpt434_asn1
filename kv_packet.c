@@ -47,13 +47,14 @@ void *create_client_packet(command cmd, uint32_t *packet_bytes, char *key, char 
 		header = packet;
 		kv_segment = (kv_pair_segment*) (((char*) packet) + sizeof(kv_packet_header));
 
+		header->payload_bytes = sizeof(kv_pair_segment) + key_len + value_len;
 		header->message_type = (uint8_t) cmd;
 		header->kv_pair_segments = 1;
 
 		kv_segment->key_bytes = key_len;
 		kv_segment->value_bytes = value_len;
-		memcpy(kv_segment + sizeof(kv_pair_segment), key, key_len);
-		memcpy(kv_segment + sizeof(kv_pair_segment) + key_len, value, value_len);
+		memcpy(((char*) kv_segment) + sizeof(kv_pair_segment), key, key_len);
+		memcpy(((char*) kv_segment) + sizeof(kv_pair_segment) + key_len, value, value_len);
 
 	} else if (cmd == get_value) {
 
@@ -66,5 +67,5 @@ void *create_client_packet(command cmd, uint32_t *packet_bytes, char *key, char 
 	} else {
 		return NULL;
 	}
-	return NULL; // TODO
+	return packet;
 }

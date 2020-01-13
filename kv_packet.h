@@ -10,6 +10,7 @@
 
 typedef struct kv_packet_header_t {
 	uint16_t checksum;
+	uint32_t payload_bytes;
 	uint8_t  message_type;
 	uint16_t kv_pair_segments;
 } kv_packet_header;
@@ -23,5 +24,7 @@ typedef struct kv_pair_segment_t {
 
 uint16_t checksum(void *data, uint32_t data_bytes);
 int verify_checksum(void *packet, uint32_t packet_bytes);
+
+void *create_client_packet(command cmd, uint32_t *packet_bytes, char *key, char *value);
 
 #endif //_KV_PACKET_H

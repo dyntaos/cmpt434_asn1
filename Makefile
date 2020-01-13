@@ -24,7 +24,7 @@ LIB = $(BUILD)/lib/$(ARCH)
 
 .PHONY: all mkdirs clean
 
-all: mkdirs $(BIN)/kv_bintree_test $(BIN)/tcp_client
+all: mkdirs $(BIN)/kv_bintree_test $(BIN)/tcp_client $(BIN)/tcp_server
 
 mkdirs:
 	mkdir -p $(BIN) $(OBJ) $(LIB)
@@ -55,3 +55,10 @@ $(OBJ)/kv_packet.o: kv_packet.c
 $(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o $(OBJ)/kv_packet.o
 	$(CC) -o $@ $^ -lreadline
 	ln -fs $@ ./tcp_client
+
+$(OBJ)/tcp_server.o: tcp_server.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
+
+$(BIN)/tcp_server: $(OBJ)/tcp_server.o $(OBJ)/kv_packet.o $(OBJ)/kv_bintree.o
+	$(CC) -o $@ $^
+	ln -fs $@ ./tcp_server
