@@ -15,8 +15,9 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#include <kv_packet.h>
+#include <kv_server_packet.h>
 #include <kv_bintree.h>
+#include <server.h>
 
 
 #define PORT "3490"  // the port users will be connecting to
@@ -134,6 +135,8 @@ int main(int argc, char *argv[]) {
 	printf("server: waiting for connections...\n");
 
 	for (;;) {
+		int quit_flag = 0;
+
 		sin_size = sizeof their_addr;
 		new_fd = accept(sockfd, (struct sockaddr*) &their_addr, &sin_size);
 		if (new_fd == -1) {
@@ -151,6 +154,10 @@ int main(int argc, char *argv[]) {
 				exit(1);
 			}
 
+			if ((command) recv_header.message_type == quit) {
+				break;
+			}
+
 			printf("checksum: %u  pair segments: %u  message type: %u  payload bytes: %u\n", recv_header.checksum, recv_header.kv_pair_segments, recv_header.message_type, recv_header.payload_bytes);
 
 			recv_payload = malloc(recv_header.payload_bytes);
@@ -162,26 +169,30 @@ int main(int argc, char *argv[]) {
 
 			printf("Got payload\n");
 
+			switch ((command) recv_header.message_type) {
+				case add:
+					if (!server_add(tree, recv_payload)) {
+						//Failed to add to tree
+						//TODO
+					}
+					break;
+				case get_value:
 
-			char *k, *v;
-			k = (char*) malloc(((kv_pair_segment*)recv_payload)->key_bytes + 1);
-			v = (char*) malloc(((kv_pair_segment*)recv_payload)->value_bytes + 1);
+					break;
+				case get_all:
 
-			memcpy(
-				k,
-				&(((char*) recv_payload)[sizeof(kv_pair_segment)]),
-				((kv_pair_segment*)recv_payload)->key_bytes
-			);
-			k[((kv_pair_segment*)recv_payload)->key_bytes] = 0;
+					break;
+				case remove_cmd:
 
-			memcpy(
-				v,
-				&(((char*) recv_payload)[sizeof(kv_pair_segment) + ((kv_pair_segment*)recv_payload)->key_bytes]),
-				((kv_pair_segment*)recv_payload)->value_bytes
-			);
-			v[((kv_pair_segment*)recv_payload)->value_bytes] = 0;
-
-			add_kv_bintree(tree, k, v);
+					break;
+				case quit:
+				case invalid:
+				default:
+					quit_flag = 1;
+			}
+			if (quit_flag) {
+				break;
+			}
 
 			print_in_order_kv_bintree(tree);
 		}

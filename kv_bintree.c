@@ -124,7 +124,7 @@ boolean add_kv_bintree(kv_binarytree *kv, char *key, void *value) {
 
 
 
-boolean has_kv_bintree_node(kv_binarytree_node *node, char *key) {
+boolean has_kv_bintree_node(const kv_binarytree_node *node, const char *key) {
 	int cmp;
 
 	if (node == NULL) return FALSE;
@@ -142,7 +142,7 @@ boolean has_kv_bintree_node(kv_binarytree_node *node, char *key) {
 	}
 }
 
-boolean has_kv_bintree(kv_binarytree *kv, char *key) {
+boolean has_kv_bintree(const kv_binarytree *kv, const char *key) {
 	if (kv == NULL) return FALSE;
 	return has_kv_bintree_node(kv->root, key);
 }
@@ -150,7 +150,7 @@ boolean has_kv_bintree(kv_binarytree *kv, char *key) {
 
 
 
-boolean get_kv_bintree_node(kv_binarytree_node *node, char *key, void **value) {
+boolean get_kv_bintree_node(const kv_binarytree_node *node, const char *key, void **value) {
 	int cmp;
 
 	if (node == NULL) return FALSE;
@@ -171,7 +171,7 @@ boolean get_kv_bintree_node(kv_binarytree_node *node, char *key, void **value) {
 	}
 }
 
-boolean get_kv_bintree(kv_binarytree *kv, char *key, void **value) {
+boolean get_kv_bintree(const kv_binarytree *kv, const char *key, void **value) {
 	if (kv == NULL) return FALSE;
 	return get_kv_bintree_node(kv->root, key, value);
 }
@@ -216,7 +216,7 @@ void delete_node_kv_bintree(kv_binarytree *kv, kv_binarytree_node *node) {
 	}
 }
 
-void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, char *key) {
+void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, const char *key) {
 	int cmp;
 	void *value;
 
@@ -240,7 +240,7 @@ void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, char *
 	}
 }
 
-void *remove_kv_bintree(kv_binarytree *kv, char *key) {
+void *remove_kv_bintree(kv_binarytree *kv, const char *key) {
 	if (kv == NULL) return FALSE;
 	if (kv->root == NULL) return FALSE;
 
@@ -250,7 +250,7 @@ void *remove_kv_bintree(kv_binarytree *kv, char *key) {
 
 
 
-uint32_t size_kv_bintree(kv_binarytree *kv) {
+uint32_t size_kv_bintree(const kv_binarytree *kv) {
 	if (kv == NULL) return 0;
 	return kv->size;
 }
@@ -323,7 +323,7 @@ boolean cursor_next_kv_bintree(kv_binarytree *kv) {
 	return TRUE;
 }
 
-boolean cursor_get_kv_bintree(kv_binarytree *kv, char **key, void **value) {
+boolean cursor_get_kv_bintree(const kv_binarytree *kv, char **key, void **value) {
 	if (kv == NULL) return FALSE;
 	if (kv->iterator == NULL) return FALSE;
 
@@ -335,8 +335,10 @@ boolean cursor_get_kv_bintree(kv_binarytree *kv, char **key, void **value) {
 
 
 
-void print_in_order_kv_bintree_node(kv_binarytree_node *node) {
-	if (node == NULL) return;
+void print_in_order_kv_bintree_node(const kv_binarytree_node *node) {
+	if (node == NULL) {
+		return;
+	}
 	print_in_order_kv_bintree_node(node->left);
 	printf("=========================\nAddress: %p"
 		"\nkey: '%s'\t\tvalue: '%s'\nleft: %p\t\t"
@@ -351,7 +353,7 @@ void print_in_order_kv_bintree_node(kv_binarytree_node *node) {
 	print_in_order_kv_bintree_node(node->right);
 }
 
-void print_in_order_kv_bintree(kv_binarytree *kv) {
+void print_in_order_kv_bintree(const kv_binarytree *kv) {
 	if (kv == NULL) return;
 	print_in_order_kv_bintree_node(kv->root);
 	printf("=========================\n\n");

@@ -2,10 +2,9 @@
 #define _KV_PACKET_H
 
 #include <stdint.h>
+
 #include <read_command.h>
-
-
-//typedef enum message_type_e {add, get_value, get_all, remove, quit} message_type;
+#include <kv_bintree.h>
 
 
 typedef struct kv_packet_header_t {
@@ -25,6 +24,9 @@ typedef struct kv_pair_segment_t {
 uint16_t checksum(void *data, uint32_t data_bytes);
 int verify_checksum(void *packet, uint32_t packet_bytes);
 
-void *create_client_packet(command cmd, uint32_t *packet_bytes, char *key, char *value);
+void *create_client_packet(const command cmd, uint32_t *packet_bytes, const char *key, const char *value);
+
+void packet_write_kv_segment(kv_pair_segment *segment, const char *key, uint32_t key_len, const char *value, uint32_t value_len);
+void *create_kv_pair_packet(const command cmd, uint32_t *packet_bytes, const char *key, const char *value);
 
 #endif //_KV_PACKET_H

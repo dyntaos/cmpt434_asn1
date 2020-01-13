@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 			packet = create_client_packet(cmd, &packet_size, t1, t2);
 
 			if (send(sockfd, packet, packet_size, 0) == -1) {
-				perror("send");
+				perror("send add");
 			}
 
 			free(packet);
@@ -111,16 +111,48 @@ int main(int argc, char *argv[]) {
 
 		} else if (cmd == get_value && arg_count == 1) {
 			printf("Call getvalue(%s)\n", t1);
+			packet = create_client_packet(cmd, &packet_size, t1, NULL);
+
+			if (send(sockfd, packet, packet_size, 0) == -1) {
+				perror("send getvalue");
+			}
+
+			free(packet);
+			packet = NULL;
 
 		} else if (cmd == get_all && arg_count == 0) {
 			printf("Call getall()\n");
+			packet = create_client_packet(cmd, &packet_size, NULL, NULL);
+
+			if (send(sockfd, packet, packet_size, 0) == -1) {
+				perror("send");
+			}
+
+			free(packet);
+			packet = NULL;
 
 		} else if (cmd == remove_cmd && arg_count == 1) {
 			printf("Call remove(%s)\n", t1);
+			packet = create_client_packet(cmd, &packet_size, t1, NULL);
+
+			if (send(sockfd, packet, packet_size, 0) == -1) {
+				perror("send remove");
+			}
+
+			free(packet);
+			packet = NULL;
 
 		} else if (cmd == quit && arg_count == 0) {
 			printf("Call quit()\n");
+			packet = create_client_packet(cmd, &packet_size, NULL, NULL);
+			printf("%p\n", packet);
+			if (send(sockfd, packet, packet_size, 0) == -1) {
+				perror("send quit");
+			}
 
+			free(packet);
+			packet = NULL;
+			exit(0);
 		} else {
 			printf("Invalid command\n");
 		}
