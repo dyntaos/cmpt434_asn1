@@ -241,8 +241,8 @@ void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, const 
 }
 
 void *remove_kv_bintree(kv_binarytree *kv, const char *key) {
-	if (kv == NULL) return FALSE;
-	if (kv->root == NULL) return FALSE;
+	if (kv == NULL) return NULL;
+	if (kv->root == NULL) return NULL;
 
 	return remove_kv_bintree_node(kv, kv->root, key);
 }

@@ -1,3 +1,5 @@
 *.pdf
-./build
-./kv_bintree_test
+build/
+tcp_server
+kv_bintree_test
+tcp_client

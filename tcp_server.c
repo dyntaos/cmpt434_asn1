@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
 
 	freeaddrinfo(servinfo); // all done with this structure
 
-	if (p == NULL)  {
+	if (p == NULL) {
 		fprintf(stderr, "server: failed to bind\n");
 		exit(1);
 	}
@@ -160,29 +160,63 @@ int main(int argc, char *argv[]) {
 
 			printf("checksum: %u  pair segments: %u  message type: %u  payload bytes: %u\n", recv_header.checksum, recv_header.kv_pair_segments, recv_header.message_type, recv_header.payload_bytes);
 
-			recv_payload = malloc(recv_header.payload_bytes);
+			if (recv_header.message_type == add || recv_header.message_type == get_value || recv_header.message_type == remove_cmd) {
+				recv_payload = malloc(recv_header.payload_bytes);
 
-			if ((recv_bytes = recv(new_fd, recv_payload, recv_header.payload_bytes, 0)) == -1) {
-				perror("recv2");
-				exit(1);
+				if ((recv_bytes = recv(new_fd, recv_payload, recv_header.payload_bytes, 0)) == -1) {
+					perror("recv2");
+					exit(1);
+				}
+
+				printf("Got payload\n");
+			} else if (recv_header.payload_bytes != 0) {
+				printf("Error: payload is non-zero for message type %u\n!", recv_header.message_type);
+				//TODO
 			}
-
-			printf("Got payload\n");
 
 			switch ((command) recv_header.message_type) {
 				case add:
-					if (!server_add(tree, recv_payload)) {
+					char *k, *v;
+
+					getKVfromSegment(recv_payload, &k, &v);
+
+					if (!add_kv_bintree(tree, k, v)) {
 						//Failed to add to tree
 						//TODO
 					}
+
+					printf("Added \"%s\":\"%s\"\n", k, v);
+
 					break;
 				case get_value:
+					char *k, *v;
+
+					getKVfromSegment(recv_payload, &k, NULL);
+
+					if (get_kv_bintree(tree, k, &v)) {
+						printf("Get value: \"%s\":\"%s\"\n", k, v);
+					} else {
+						printf("Get value: \"%s\": Key does not exist...\n", k);
+						v = NULL;
+					}
+
+					free(k);
 
 					break;
 				case get_all:
 
 					break;
 				case remove_cmd:
+					char *k, *v;
+
+					getKVfromSegment(recv_payload, &k, NULL);
+
+					if (v = remove_kv_bintree(tree, k)) {
+						printf("Remove key: \"%s\":\"%s\"\n", k, v);
+					} else {
+						printf("Remove key: \"%s\": Key does not exist...\n", k, v);
+					}
+					free(k);
 
 					break;
 				case quit:

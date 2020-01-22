@@ -56,7 +56,7 @@ void *create_client_packet(const command cmd, uint32_t *packet_bytes, const char
 		header = packet;
 		kv_segment = (kv_pair_segment*) (((char*) packet) + sizeof(kv_packet_header));
 
-		header->payload_bytes = sizeof(kv_pair_segment) + key_len;
+		//header->payload_bytes = sizeof(kv_pair_segment) + key_len;
 		header->message_type = (uint8_t) cmd;
 		header->kv_pair_segments = 1;
 
@@ -71,7 +71,7 @@ void *create_client_packet(const command cmd, uint32_t *packet_bytes, const char
 		packet = malloc(*packet_bytes);
 		header = packet;
 
-		header->payload_bytes = 0;
+		//header->payload_bytes = 0;
 		header->message_type = (uint8_t) cmd;
 		header->kv_pair_segments = 0;
 
@@ -79,6 +79,13 @@ void *create_client_packet(const command cmd, uint32_t *packet_bytes, const char
 		return NULL;
 	}
 	return packet;
+}
+
+void packet_write_header(kv_packet_header *header, command cmd, message_direction msg_direction, uint32_t kv_pair_segments) { //, uint32_t payload_bytes
+	//header->payload_bytes = payload_bytes;
+	header->message_direction = msg_direction;
+	header->message_type = (uint8_t) cmd;
+	header->kv_pair_segments = kv_pair_segments;
 }
 
 void packet_write_kv_segment(kv_pair_segment *segment, const char *key, uint32_t key_len, const char *value, uint32_t value_len) {
@@ -98,14 +105,36 @@ void *create_kv_pair_packet(const command cmd, uint32_t *packet_bytes, const cha
 	if (cmd != add && cmd != remove_cmd) return NULL;
 
 	*packet_bytes = sizeof(kv_packet_header) + sizeof(kv_pair_segment) + key_len + value_len;
-	packet = malloc(*packet_bytes);
+	packet = (void*) malloc(*packet_bytes);
 	header = packet;
 	kv_segment = (kv_pair_segment*) (((char*) packet) + sizeof(kv_packet_header));
 	packet_write_kv_segment(kv_segment, key, key_len, value, value_len);
 
-	header->payload_bytes = sizeof(kv_pair_segment) + key_len + value_len;
+	//header->payload_bytes = sizeof(kv_pair_segment) + key_len + value_len;
 	header->message_type = (uint8_t) cmd;
 	header->kv_pair_segments = 1;
 
 	return packet;
+}
+
+void getKVfromSegment(void *recv_payload, void **k, void **v) {
+	if (k != NULL) {
+		*k = (void*) malloc(((kv_pair_segment*) recv_payload)->key_bytes + 1);
+		memcpy(
+			*k,
+			&(((char*) recv_payload)[sizeof(kv_pair_segment)]),
+			((kv_pair_segment*) recv_payload)->key_bytes
+		);
+		(*(char**) k)[((kv_pair_segment*) recv_payload)->key_bytes] = 0;
+	}
+
+	if (v != NULL) {
+		*v = (void*) malloc(((kv_pair_segment*) recv_payload)->value_bytes + 1);
+		memcpy(
+			*v,
+			&(((char*) recv_payload)[sizeof(kv_pair_segment) + ((kv_pair_segment*) recv_payload)->key_bytes]),
+			((kv_pair_segment*) recv_payload)->value_bytes
+		);
+		(*(char**) v)[((kv_pair_segment*) recv_payload)->value_bytes] = 0;
+	}
 }
