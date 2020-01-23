@@ -194,6 +194,7 @@ void delete_node_kv_bintree(kv_binarytree *kv, kv_binarytree_node *node) {
 	if (found_subtree) {
 		if (node->parent == NULL) {
 			kv->root = subtree;
+			if (subtree != NULL) subtree->parent = NULL;
 		} else if (node->parent->left == node) {
 			node->parent->left = subtree;
 			if (subtree != NULL) subtree->parent = node->parent;
