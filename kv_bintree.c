@@ -231,6 +231,9 @@ void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, const 
 		key_free(node->key);
 		delete_node_kv_bintree(kv, node);
 		kv->size--;
+		if (kv->size == 0) {
+			kv->root = NULL;
+		}
 		return value;
 	}
 
@@ -356,6 +359,10 @@ void print_in_order_kv_bintree_node(const kv_binarytree_node *node) {
 
 void print_in_order_kv_bintree(const kv_binarytree *kv) {
 	if (kv == NULL) return;
+	printf("=========================\n\n");
+	printf("Root: %p\n", (void*) kv->root);
+
 	print_in_order_kv_bintree_node(kv->root);
+
 	printf("=========================\n\n");
 }

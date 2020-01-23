@@ -15,7 +15,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#include <kv_server_packet.h>
+#include <kv_packet.h>
 #include <kv_bintree.h>
 
 
@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
 	kv_binarytree *tree;
 	char *k, *v;
 	size_t malloc_len, string_len;
-	int32_t recv_bytes;
-	kv_packet received_packet;
+	ssize_t recv_bytes;
+	kv_packet packet;
 
 
 	(void) argc;
@@ -149,28 +149,30 @@ int main(int argc, char *argv[]) {
 
 		for (;;) {
 
-			if ((recv_bytes = recv(new_fd, &received_packet, sizeof(kv_packet), 0)) == -1) {
+			if ((recv_bytes = recv(new_fd, &packet, sizeof(kv_packet), 0)) == -1) {
 				perror("recv");
 				exit(EXIT_FAILURE);
 			}
 
-			if (recv_bytes == 0 || received_packet.message_command == quit) {
+			if (recv_bytes == 0) {
 				break;
 			}
 
-			switch (received_packet.message_command) {
+			switch (packet.message_command) {
+
+
 				case add:
 
-					string_len = strlen(received_packet.key);
+					string_len = strlen(packet.key);
 					malloc_len = string_len <= KV_MAX_STRING_LEN ? string_len + 1 : KV_MAX_STRING_LEN + 1;
 					k = (char*) malloc(malloc_len);
-					memcpy(k, received_packet.key, string_len);
+					memcpy(k, packet.key, string_len);
 					k[string_len] = 0;
 
-					string_len = strlen(received_packet.value);
+					string_len = strlen(packet.value);
 					malloc_len = string_len <= KV_MAX_STRING_LEN ? string_len + 1 : KV_MAX_STRING_LEN + 1;
 					v = (char*) malloc(malloc_len);
-					memcpy(v, received_packet.value, string_len);
+					memcpy(v, packet.value, string_len);
 					v[string_len] = 0;
 
 					if (!add_kv_bintree(tree, k, v)) {
@@ -178,58 +180,152 @@ int main(int argc, char *argv[]) {
 						//TODO
 						printf("Failed to add \"%s\":\"%s\"\n", k, v);
 
+						if (!write_packet(&packet, packet.message_command, REPLY, 0, 0, NULL, NULL)) {
+							// TODO: Failed to create packet (key and/or value too long!)
+							perror("Error: Invalid arguments to add reply!");
+							free(k);
+							free(v);
+							k = v = NULL;
+							continue;
+						}
+
 						free(k);
 						free(v);
-						k = v = NULL;
-						continue;
+
+					} else {
+						printf("Added \"%s\":\"%s\"\n", k, v);
+						packet.message_type = REPLY;
 					}
 
-					printf("Added \"%s\":\"%s\"\n", k, v);
-					// TODO: Reply to client
+					if (send(new_fd, &packet, sizeof(kv_packet), 0) == -1) {
+						perror("Error: Failed to send add command!");
+					}
 
 					k = v = NULL;
 
 					break;
+
+
 				case get_value:
 
-					if (get_kv_bintree(tree, received_packet.key, (void**) &v)) {
-						printf("Get value: \"%s\":\"%s\"\n", received_packet.key, v);
+					if (get_kv_bintree(tree, packet.key, (void**) &v)) {
+						printf("Get value: \"%s\":\"%s\"\n", packet.key, v);
+
+						if (!write_packet(&packet, get_value, REPLY, 1, 1, packet.key, v)) {
+							// Execution should never reach here
+							perror("Error: Invalid arguments to get_value reply!");
+						}
+
 					} else {
-						printf("Get value: \"%s\": Key does not exist...\n", received_packet.key);
+						printf("Get value: \"%s\": Key does not exist...\n", packet.key);
+
+						if (!write_packet(&packet, get_value, REPLY, 0, 0, NULL, NULL)) {
+							// Execution should never reach here
+							perror("Error: Invalid arguments to get_value error reply!");
+						}
 					}
-					// TODO: Reply to client
+
+					if (send(new_fd, &packet, sizeof(kv_packet), 0) == -1) {
+						perror("Error: Failed to send get_value reply!");
+					}
 
 					v = NULL;
 
 					break;
+
+
 				case get_all:
-					// TODO
 
-					break;
-				case remove_cmd:
+					if (size_kv_bintree(tree) == 0) {
+						if (!write_packet(&packet, get_all, REPLY, 0, 0, NULL, NULL)) {
+							// Execution should never reach here
+							perror("Error: Invalid arguments to get_all reply!");
+						}
 
-					if ((v = remove_kv_bintree(tree, received_packet.key, free)) != NULL) {
-						printf("Remove key: \"%s\":\"%s\"\n", received_packet.key, v);
+						printf("Getall: 0 items\n");
+
+						if (send(new_fd, &packet, sizeof(kv_packet), 0) == -1) {
+							perror("Error: Failed to send get_value reply!");
+						}
+
 					} else {
-						printf("Remove key: \"%s\": Key does not exist...\n", received_packet.key);
+						size_t i = 1;
+
+						printf("Getall: %u items\n", size_kv_bintree(tree));
+						cursor_init_kv_bintree(tree);
+
+						do {
+							if (!cursor_get_kv_bintree(tree, &k, (void**) &v)) break;
+
+							if (!write_packet(&packet, get_all, REPLY, size_kv_bintree(tree), i, k, v)) {
+								// Execution should never reach here
+								perror("Error: Invalid arguments to get_all iterator reply!");
+							}
+
+							printf("%lu  \"%s\":\"%s\"\n", i, k, v);
+
+							if (send(new_fd, &packet, sizeof(kv_packet), 0) == -1) {
+								perror("Error: Failed to send get_value iterator reply!");
+							}
+
+							i++;
+
+						} while(cursor_next_kv_bintree(tree));
+
+						k = v = NULL;
 					}
 
-					// TODO: Reply to client
+					break;
+
+
+				case remove_cmd:
+
+					if ((v = remove_kv_bintree(tree, packet.key, free)) != NULL) {
+						printf("Remove key: \"%s\":\"%s\"\n", packet.key, v);
+
+						if (!write_packet(&packet, remove_cmd, REPLY, 1, 1, packet.key, v)) {
+							// Execution should never reach here
+							perror("Error: Invalid arguments to remove reply!");
+							continue;
+						}
+						printf("SENT KEY: %s   SENT VALUE: %s   PAIRS TOTAL: %d   PAIRS NUM: %d\n\n", packet.key, packet.value, packet.kv_pairs_total, packet.kv_pair_number);
+					} else {
+						printf("Remove key: \"%s\": Key does not exist...\n", packet.key);
+
+						if (!write_packet(&packet, remove_cmd, REPLY, 0, 0, NULL, NULL)) {
+							// Execution should never reach here
+							perror("Error: Invalid arguments to remove error reply!");
+							continue;
+						}
+					}
+
+					if (send(new_fd, &packet, sizeof(kv_packet), 0) == -1) {
+						perror("Error: Failed to send remove reply!");
+					}
 
 					free(v);
 					v = NULL;
 
 					break;
+
+
 				case quit:
+
+					printf("Client disconnected...\n");
+					quit_flag = 1;
+					break;
+
+
 				case invalid:
 				default:
 					quit_flag = 1;
+
 			}
+
 			if (quit_flag) {
 				break;
 			}
-			printf("Size of tree: %d\n", size_kv_bintree(tree));
-			//print_in_order_kv_bintree(tree);
+			print_in_order_kv_bintree(tree);
 		}
 
 		close(new_fd);

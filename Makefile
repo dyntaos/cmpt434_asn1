@@ -52,9 +52,6 @@ $(OBJ)/read_command.o: read_command.c
 $(OBJ)/kv_packet.o: kv_packet.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
 
-$(OBJ)/kv_server_packet.o: kv_server_packet.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
-
 $(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o $(OBJ)/kv_packet.o
 	$(CC) -o $@ $^ -lreadline
 	ln -fs $@ ./tcp_client
@@ -62,6 +59,6 @@ $(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o $(OBJ)/kv_packet.o
 $(OBJ)/tcp_server.o: tcp_server.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
 
-$(BIN)/tcp_server: $(OBJ)/tcp_server.o $(OBJ)/kv_packet.o $(OBJ)/kv_server_packet.o $(OBJ)/kv_bintree.o
+$(BIN)/tcp_server: $(OBJ)/tcp_server.o $(OBJ)/kv_packet.o $(OBJ)/kv_bintree.o
 	$(CC) -o $@ $^
 	ln -fs $@ ./tcp_server

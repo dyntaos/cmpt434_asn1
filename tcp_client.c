@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
 
 	for (;;) {
 		int arg_count = 0;
+		ssize_t recv_bytes;
 		kv_packet packet;
 
 		cmd = read_command(&t1, &t2);
@@ -100,22 +101,35 @@ int main(int argc, char *argv[]) {
 		//printf("cmd: %u  t1: \"%s\"  t2: \"%s\"\n", cmd, t1, t2);
 
 		if (cmd == add && arg_count == 2) {
-			printf("Call add(%s, %s)\n", t1, t2);
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
 				// TODO: Failed to create packet (key and/or value too long!)
 				perror("Error: Invalid arguments to add!");
 				continue;
 			}
-			printf("Adding \"%s\":\"%s\"\n", packet.key, packet.value);
 
 			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
 				perror("Error: Failed to send add command!");
 				continue; // TODO: Is this needed?
 			}
 
+			if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+				perror("recv"); // TODO
+				exit(EXIT_FAILURE);
+			}
+
+			if (recv_bytes == 0) {
+				printf("Connection closed...\n");
+				exit(EXIT_FAILURE);
+			}
+
+			if (packet.kv_pairs_total == 0) {
+				printf("Failed to add \"%s\":\"%s\"\n\n", t1, t2);
+			} else {
+				printf("Added \"%s\":\"%s\"\n\n", t1, t2);
+			}
+
 		} else if (cmd == get_value && arg_count == 1) {
-			printf("Call getvalue(%s)\n", t1);
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
 				// TODO: Failed to create packet (key and/or value too long!)
@@ -128,8 +142,23 @@ int main(int argc, char *argv[]) {
 				continue; // TODO: Is this needed?
 			}
 
+			if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+				perror("recv"); // TODO
+				exit(EXIT_FAILURE);
+			}
+
+			if (recv_bytes == 0) {
+				printf("Connection closed...\n");
+				exit(EXIT_FAILURE);
+			}
+
+			if (packet.kv_pairs_total == 0) {
+				printf("Key \"%s\" does not exist\n\n", t1);
+			} else {
+				printf("\"%s\":\"%s\"\n\n", packet.key, packet.value);
+			}
+
 		} else if (cmd == get_all && arg_count == 0) {
-			printf("Call getall()\n");
 
 			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
 				// TODO: Failed to create packet (key and/or value too long!)
@@ -142,9 +171,31 @@ int main(int argc, char *argv[]) {
 				continue; // TODO: Is this needed
 			}
 
+			do {
+				if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+					perror("recv"); // TODO
+					exit(EXIT_FAILURE);
+				}
+
+				if (recv_bytes == 0) {
+					printf("Connection closed...\n");
+					exit(EXIT_FAILURE);
+				}
+
+				if (packet.kv_pairs_total == 0) {
+					printf("Getall: 0 items\n\n");
+				} else {
+					if (packet.kv_pair_number == 1) {
+						printf("Getall: %u items\n", packet.kv_pairs_total);
+					}
+					printf("\"%s\":\"%s\"\n", packet.key, packet.value);
+				}
+
+			} while(packet.kv_pair_number != packet.kv_pairs_total);
+			printf("\n");
+
 
 		} else if (cmd == remove_cmd && arg_count == 1) {
-			printf("Call remove(%s)\n", t1);
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, NULL)) {
 				// TODO: Failed to create packet (key and/or value too long!)
@@ -157,8 +208,23 @@ int main(int argc, char *argv[]) {
 				continue; // TODO: Is this needed?
 			}
 
+			if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+				perror("recv"); // TODO
+				exit(EXIT_FAILURE);
+			}
+
+			if (recv_bytes == 0) {
+				printf("Connection closed...\n");
+				exit(EXIT_FAILURE);
+			}
+
+			if (packet.kv_pairs_total == 0) {
+				printf("Key \"%s\" does not exist\n\n", t1);
+			} else {
+				printf("Removed \"%s\":\"%s\"\n\n", packet.key, packet.value);
+			}
+
 		} else if (cmd == quit && arg_count == 0) {
-			printf("Call quit()\n");
 
 			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
 				// TODO: Failed to create packet (key and/or value too long!)
