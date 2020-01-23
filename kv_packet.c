@@ -4,137 +4,55 @@
 #include <kv_packet.h>
 
 
-uint16_t checksum(void *packet_data, uint32_t packet_bytes) {
-	uint16_t *packet = (uint16_t*) (((char*) packet_data) + 2);
-	uint32_t half_words = (packet_bytes - 2) / 2;
-	uint8_t odd_bytes = packet_bytes % 2;
-	uint16_t chk = 0;
 
-	for (uint32_t i = 2; i < half_words; i++) {
-		chk += ~(packet[i]);
-	}
-	if (odd_bytes) {
-		chk += ~( ((char*) packet)[packet_bytes - 1]);
-	}
-	return chk;
-}
-
-int verify_checksum(void *packet, uint32_t packet_bytes) {
-	uint16_t packet_checksum = *((uint16_t*) packet);
-	uint16_t calculated_sum = 0;
-	uint16_t *p = (uint16_t*) packet;
-	uint8_t odd_bytes = packet_bytes % 2;
-
-	for (uint32_t i = 2; i < packet_bytes / 2; i++) {
-		calculated_sum += p[i];
-	}
-	if (odd_bytes) {
-		calculated_sum += ((char*) packet)[packet_bytes - 1];
-	}
-	return calculated_sum + packet_checksum == 0xFFFF;
-}
-
-void *create_client_packet(const command cmd, uint32_t *packet_bytes, const char *key, const char *value) {
-	uint32_t key_len; //, value_len;
-	void *packet = 0;
-	kv_packet_header *header;
-	kv_pair_segment *kv_segment;
+boolean write_packet(
+	kv_packet *packet,
+	kv_message_command msg_command,
+	kv_message_type msg_direction,
+	uint16_t kv_pairs_total,
+	uint16_t kv_pair_number,
+	char *key,
+	char *value
+) {
+	size_t key_len, value_len;
 
 	if (key != NULL) {
 		key_len = strlen(key);
+		if (key_len > KV_MAX_STRING_LEN) return FALSE;
 	} else {
 		key_len = 0;
 	}
-	//value_len = strlen(value);
 
-	if (cmd == add) {
-		return create_kv_pair_packet(cmd, packet_bytes, key, value);
-
-	} else if (cmd == get_value || cmd == remove_cmd) {
-		*packet_bytes = sizeof(kv_packet_header) + sizeof(kv_pair_segment) + key_len;
-		packet = malloc(*packet_bytes);
-		header = packet;
-		kv_segment = (kv_pair_segment*) (((char*) packet) + sizeof(kv_packet_header));
-
-		//header->payload_bytes = sizeof(kv_pair_segment) + key_len;
-		header->message_type = (uint8_t) cmd;
-		header->kv_pair_segments = 1;
-
-		packet_write_kv_segment(kv_segment, key, key_len, NULL, 0);
-
-		//kv_segment->key_bytes = key_len;
-		//kv_segment->value_bytes = 0;
-		//memcpy(((char*) kv_segment) + sizeof(kv_pair_segment), key, key_len);
-
-	} else if (cmd == get_all || cmd == quit) {
-		*packet_bytes = sizeof(kv_packet_header);
-		packet = malloc(*packet_bytes);
-		header = packet;
-
-		//header->payload_bytes = 0;
-		header->message_type = (uint8_t) cmd;
-		header->kv_pair_segments = 0;
-
+	if (value != NULL) {
+		value_len = strlen(value);
+		if (value_len > KV_MAX_STRING_LEN) return FALSE;
 	} else {
-		return NULL;
-	}
-	return packet;
-}
-
-void packet_write_header(kv_packet_header *header, command cmd, message_direction msg_direction, uint32_t kv_pair_segments) { //, uint32_t payload_bytes
-	//header->payload_bytes = payload_bytes;
-	header->message_direction = msg_direction;
-	header->message_type = (uint8_t) cmd;
-	header->kv_pair_segments = kv_pair_segments;
-}
-
-void packet_write_kv_segment(kv_pair_segment *segment, const char *key, uint32_t key_len, const char *value, uint32_t value_len) {
-	segment->key_bytes = key_len;
-	segment->value_bytes = value_len;
-	memcpy(((char*) segment) + sizeof(kv_pair_segment), key, key_len);
-	memcpy(((char*) segment) + sizeof(kv_pair_segment) + key_len, value, value_len);
-}
-
-void *create_kv_pair_packet(const command cmd, uint32_t *packet_bytes, const char *key, const char *value) {
-	uint32_t key_len = strlen(key);
-	uint32_t value_len = strlen(value);
-	void *packet = 0;
-	kv_packet_header *header;
-	kv_pair_segment *kv_segment;
-
-	if (cmd != add && cmd != remove_cmd) return NULL;
-
-	*packet_bytes = sizeof(kv_packet_header) + sizeof(kv_pair_segment) + key_len + value_len;
-	packet = (void*) malloc(*packet_bytes);
-	header = packet;
-	kv_segment = (kv_pair_segment*) (((char*) packet) + sizeof(kv_packet_header));
-	packet_write_kv_segment(kv_segment, key, key_len, value, value_len);
-
-	//header->payload_bytes = sizeof(kv_pair_segment) + key_len + value_len;
-	header->message_type = (uint8_t) cmd;
-	header->kv_pair_segments = 1;
-
-	return packet;
-}
-
-void getKVfromSegment(void *recv_payload, void **k, void **v) {
-	if (k != NULL) {
-		*k = (void*) malloc(((kv_pair_segment*) recv_payload)->key_bytes + 1);
-		memcpy(
-			*k,
-			&(((char*) recv_payload)[sizeof(kv_pair_segment)]),
-			((kv_pair_segment*) recv_payload)->key_bytes
-		);
-		(*(char**) k)[((kv_pair_segment*) recv_payload)->key_bytes] = 0;
+		value_len = 0;
 	}
 
-	if (v != NULL) {
-		*v = (void*) malloc(((kv_pair_segment*) recv_payload)->value_bytes + 1);
-		memcpy(
-			*v,
-			&(((char*) recv_payload)[sizeof(kv_pair_segment) + ((kv_pair_segment*) recv_payload)->key_bytes]),
-			((kv_pair_segment*) recv_payload)->value_bytes
-		);
-		(*(char**) v)[((kv_pair_segment*) recv_payload)->value_bytes] = 0;
+	packet->message_command = msg_command;
+	packet->message_type = msg_direction;
+	packet->kv_pairs_total = kv_pairs_total;
+	packet->kv_pair_number = kv_pair_number;
+
+
+	//TODO REMOVE
+	memset(packet->key, 0, KV_STRING_FIELD_LEN);
+	memset(packet->value, 0, KV_STRING_FIELD_LEN);\
+
+
+	if (key != NULL) {
+		memcpy(packet->key, key, key_len);
 	}
+	// Write NULL to unused characters to prevent leaking of uninitialized memory
+	//memset(packet->key + key_len, 0, KV_STRING_FIELD_LEN - key_len); // TODO: Check the length written here
+
+	if (value != NULL) {
+		memcpy(packet->value, value, value_len);
+	}
+	// Write NULL to unused characters to prevent leaking of uninitialized memory
+	memset(packet->value + value_len, 0, KV_STRING_FIELD_LEN - value_len); // TODO: Check the length written here
+
+	return TRUE;
 }
+

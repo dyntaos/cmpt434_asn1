@@ -6,6 +6,10 @@ void tree_iterator(char *k, void *v) {
 	printf("\t\"%s\": \"%s\"\n", k, (char*) v);
 }
 
+void fake_free(void *p) {
+	(void) p;
+	return;
+}
 
 int main(int argc, char *argv[]) {
 	kv_binarytree *tree;
@@ -86,27 +90,27 @@ int main(int argc, char *argv[]) {
 		printf("Cursor key: \"%s\"  value: \"%s\"\n", k, (char*) v);
 	} while (cursor_next_kv_bintree(tree));
 
-	if (remove_kv_bintree(tree, "fake") == NULL) {
+	if (remove_kv_bintree(tree, "fake", fake_free) == NULL) {
 		printf("Failed to delete key \"fake\", as expected\n\n");
 	}
 
 	printf("Delete key \"key1\"!\n\n");
-	if (remove_kv_bintree(tree, "key1") == NULL) {
+	if (remove_kv_bintree(tree, "key1", fake_free) == NULL) {
 		printf("Failed to delete key \"key1\"...\n\n");
 	}
 
 	printf("Delete key \"a key 2\"...\n\n");
-	if (remove_kv_bintree(tree, "a key 2") == NULL) {
+	if (remove_kv_bintree(tree, "a key 2", fake_free) == NULL) {
 		printf("Failed to delete key \"a key 2\"!\n\n");
 	}
 
 	printf("Delete key \"llllllllllll\"...\n\n");
-	if (remove_kv_bintree(tree, "llllllllllll") == NULL) {
+	if (remove_kv_bintree(tree, "llllllllllll", fake_free) == NULL) {
 		printf("Failed to delete key \"llllllllllll\"!\n\n");
 	}
 
 	printf("Delete key \"ttt\"...\n\n");
-	if (remove_kv_bintree(tree, "ttt") == NULL) {
+	if (remove_kv_bintree(tree, "ttt", fake_free) == NULL) {
 		printf("Failed to delete key \"ttt\"!\n\n");
 	}
 
@@ -114,5 +118,5 @@ int main(int argc, char *argv[]) {
 	print_in_order_kv_bintree(tree);
 
 
-return 0;
+	return 0;
 }

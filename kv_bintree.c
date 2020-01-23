@@ -216,7 +216,7 @@ void delete_node_kv_bintree(kv_binarytree *kv, kv_binarytree_node *node) {
 	}
 }
 
-void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, const char *key) {
+void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, const char *key, void (*key_free)(void*)) {
 	int cmp;
 	void *value;
 
@@ -228,23 +228,24 @@ void *remove_kv_bintree_node(kv_binarytree *kv, kv_binarytree_node *node, const 
 
 	if (cmp == 0) {
 		value = node->value;
+		key_free(node->key);
 		delete_node_kv_bintree(kv, node);
 		kv->size--;
 		return value;
 	}
 
 	if (cmp < 0) {
-		return remove_kv_bintree_node(kv, node->left, key);
+		return remove_kv_bintree_node(kv, node->left, key, key_free);
 	} else {
-		return remove_kv_bintree_node(kv, node->right, key);
+		return remove_kv_bintree_node(kv, node->right, key, key_free);
 	}
 }
 
-void *remove_kv_bintree(kv_binarytree *kv, const char *key) {
+void *remove_kv_bintree(kv_binarytree *kv, const char *key, void (*key_free)(void*)) {
 	if (kv == NULL) return NULL;
 	if (kv->root == NULL) return NULL;
 
-	return remove_kv_bintree_node(kv, kv->root, key);
+	return remove_kv_bintree_node(kv, kv->root, key, key_free);
 }
 
 

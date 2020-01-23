@@ -17,7 +17,6 @@
 
 #include <kv_server_packet.h>
 #include <kv_bintree.h>
-#include <server.h>
 
 
 #define PORT "3490"  // the port users will be connecting to
@@ -51,7 +50,8 @@ void *get_in_addr(struct sockaddr *sa)
 
 int main(int argc, char *argv[]) {
 	int sockfd, new_fd;  // listen on sock_fd, new connection on new_fd
-	struct addrinfo hints, *servinfo, *p;
+	struct addrinfo hints;
+	struct addrinfo *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
 	struct sigaction sa;
@@ -60,10 +60,10 @@ int main(int argc, char *argv[]) {
 	int rv;
 
 	kv_binarytree *tree;
-
+	char *k, *v;
+	size_t malloc_len, string_len;
 	int32_t recv_bytes;
-	kv_packet_header recv_header;
-	void *recv_payload = NULL;
+	kv_packet received_packet;
 
 
 	(void) argc;
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	printf("server: waiting for connections...\n");
+	printf("Server: Waiting for connections...\n");
 
 	for (;;) {
 		int quit_flag = 0;
@@ -145,78 +145,79 @@ int main(int argc, char *argv[]) {
 		}
 
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr*) &their_addr), s, sizeof(s));
-		printf("server: got connection from %s\n", s);
+		printf("Server: Got connection from %s\n", s);
 
 		for (;;) {
 
-			if ((recv_bytes = recv(new_fd, &recv_header, sizeof(kv_packet_header), 0)) == -1) {
+			if ((recv_bytes = recv(new_fd, &received_packet, sizeof(kv_packet), 0)) == -1) {
 				perror("recv");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
-			if ((command) recv_header.message_type == quit) {
+			if (recv_bytes == 0 || received_packet.message_command == quit) {
 				break;
 			}
 
-			printf("checksum: %u  pair segments: %u  message type: %u  payload bytes: %u\n", recv_header.checksum, recv_header.kv_pair_segments, recv_header.message_type, recv_header.payload_bytes);
-
-			if (recv_header.message_type == add || recv_header.message_type == get_value || recv_header.message_type == remove_cmd) {
-				recv_payload = malloc(recv_header.payload_bytes);
-
-				if ((recv_bytes = recv(new_fd, recv_payload, recv_header.payload_bytes, 0)) == -1) {
-					perror("recv2");
-					exit(1);
-				}
-
-				printf("Got payload\n");
-			} else if (recv_header.payload_bytes != 0) {
-				printf("Error: payload is non-zero for message type %u\n!", recv_header.message_type);
-				//TODO
-			}
-
-			switch ((command) recv_header.message_type) {
+			switch (received_packet.message_command) {
 				case add:
-					char *k, *v;
 
-					getKVfromSegment(recv_payload, &k, &v);
+					string_len = strlen(received_packet.key);
+					malloc_len = string_len <= KV_MAX_STRING_LEN ? string_len + 1 : KV_MAX_STRING_LEN + 1;
+					k = (char*) malloc(malloc_len);
+					memcpy(k, received_packet.key, string_len);
+					k[string_len] = 0;
+
+					string_len = strlen(received_packet.value);
+					malloc_len = string_len <= KV_MAX_STRING_LEN ? string_len + 1 : KV_MAX_STRING_LEN + 1;
+					v = (char*) malloc(malloc_len);
+					memcpy(v, received_packet.value, string_len);
+					v[string_len] = 0;
 
 					if (!add_kv_bintree(tree, k, v)) {
 						//Failed to add to tree
 						//TODO
+						printf("Failed to add \"%s\":\"%s\"\n", k, v);
+
+						free(k);
+						free(v);
+						k = v = NULL;
+						continue;
 					}
 
 					printf("Added \"%s\":\"%s\"\n", k, v);
+					// TODO: Reply to client
+
+					k = v = NULL;
 
 					break;
 				case get_value:
-					char *k, *v;
 
-					getKVfromSegment(recv_payload, &k, NULL);
-
-					if (get_kv_bintree(tree, k, &v)) {
-						printf("Get value: \"%s\":\"%s\"\n", k, v);
+					if (get_kv_bintree(tree, received_packet.key, (void**) &v)) {
+						printf("Get value: \"%s\":\"%s\"\n", received_packet.key, v);
 					} else {
-						printf("Get value: \"%s\": Key does not exist...\n", k);
-						v = NULL;
+						printf("Get value: \"%s\": Key does not exist...\n", received_packet.key);
 					}
+					// TODO: Reply to client
 
-					free(k);
+					v = NULL;
 
 					break;
 				case get_all:
+					// TODO
 
 					break;
 				case remove_cmd:
-					char *k, *v;
 
-					getKVfromSegment(recv_payload, &k, NULL);
-
-					if (v = remove_kv_bintree(tree, k)) {
-						printf("Remove key: \"%s\":\"%s\"\n", k, v);
+					if ((v = remove_kv_bintree(tree, received_packet.key, free)) != NULL) {
+						printf("Remove key: \"%s\":\"%s\"\n", received_packet.key, v);
 					} else {
-						printf("Remove key: \"%s\": Key does not exist...\n", k, v);
+						printf("Remove key: \"%s\": Key does not exist...\n", received_packet.key);
 					}
-					free(k);
+
+					// TODO: Reply to client
+
+					free(v);
+					v = NULL;
 
 					break;
 				case quit:
@@ -227,21 +228,11 @@ int main(int argc, char *argv[]) {
 			if (quit_flag) {
 				break;
 			}
-
-			print_in_order_kv_bintree(tree);
+			printf("Size of tree: %d\n", size_kv_bintree(tree));
+			//print_in_order_kv_bintree(tree);
 		}
 
 		close(new_fd);
-		/*
-		if (!fork()) { // this is the child process
-			close(sockfd); // child doesn't need the listener
-			if (send(new_fd, "Hello, world!", 13, 0) == -1)
-				perror("send");
-			close(new_fd);
-			exit(0);
-		}
-		*/
-
 
 	}
 

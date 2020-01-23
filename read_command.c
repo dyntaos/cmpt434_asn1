@@ -9,9 +9,9 @@
 #include <read_command.h>
 
 
-command read_command(char **token1, char **token2) {
+kv_message_command read_command(char **token1, char **token2) {
 	char *input, *token;
-	command cmd = invalid;
+	kv_message_command cmd = invalid;
 	uint16_t token_count, token_len;
 
 	input = readline(">> ");

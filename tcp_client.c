@@ -34,13 +34,13 @@ void *get_in_addr(struct sockaddr *sa) {
 
 int main(int argc, char *argv[]) {
 	char *t1 = 0, *t2 = 0;
-	command cmd;
-	void *packet = 0;
-	uint32_t packet_size = 0;
+	kv_message_command cmd;
+
 	int sockfd;
 	//int numbytes;
 	//char buf[MAXDATASIZE];
-	struct addrinfo hints, *servinfo, *p;
+	struct addrinfo hints;
+	struct addrinfo *servinfo, *p;
 	int rv;
 	char s[INET6_ADDRSTRLEN];
 
@@ -92,6 +92,8 @@ int main(int argc, char *argv[]) {
 
 	for (;;) {
 		int arg_count = 0;
+		kv_packet packet;
+
 		cmd = read_command(&t1, &t2);
 		if (t1 != NULL) arg_count++;
 		if (t2 != NULL) arg_count++;
@@ -100,59 +102,76 @@ int main(int argc, char *argv[]) {
 		if (cmd == add && arg_count == 2) {
 			printf("Call add(%s, %s)\n", t1, t2);
 
-			packet = create_client_packet(cmd, &packet_size, t1, t2);
-
-			if (send(sockfd, packet, packet_size, 0) == -1) {
-				perror("send add");
+			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
+				// TODO: Failed to create packet (key and/or value too long!)
+				perror("Error: Invalid arguments to add!");
+				continue;
 			}
+			printf("Adding \"%s\":\"%s\"\n", packet.key, packet.value);
 
-			free(packet);
-			packet = NULL;
+			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+				perror("Error: Failed to send add command!");
+				continue; // TODO: Is this needed?
+			}
 
 		} else if (cmd == get_value && arg_count == 1) {
 			printf("Call getvalue(%s)\n", t1);
-			packet = create_client_packet(cmd, &packet_size, t1, NULL);
 
-			if (send(sockfd, packet, packet_size, 0) == -1) {
-				perror("send getvalue");
+			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
+				// TODO: Failed to create packet (key and/or value too long!)
+				perror("Make get_value packet");
+				continue;
 			}
 
-			free(packet);
-			packet = NULL;
+			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+				perror("send getvalue");
+				continue; // TODO: Is this needed?
+			}
 
 		} else if (cmd == get_all && arg_count == 0) {
 			printf("Call getall()\n");
-			packet = create_client_packet(cmd, &packet_size, NULL, NULL);
 
-			if (send(sockfd, packet, packet_size, 0) == -1) {
-				perror("send");
+			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
+				// TODO: Failed to create packet (key and/or value too long!)
+				perror("Make getall packet");
+				continue;
 			}
 
-			free(packet);
-			packet = NULL;
+			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+				perror("send");
+				continue; // TODO: Is this needed
+			}
+
 
 		} else if (cmd == remove_cmd && arg_count == 1) {
 			printf("Call remove(%s)\n", t1);
-			packet = create_client_packet(cmd, &packet_size, t1, NULL);
 
-			if (send(sockfd, packet, packet_size, 0) == -1) {
-				perror("send remove");
+			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, NULL)) {
+				// TODO: Failed to create packet (key and/or value too long!)
+				perror("Make remove packet");
+				continue;
 			}
 
-			free(packet);
-			packet = NULL;
+			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+				perror("send remove");
+				continue; // TODO: Is this needed?
+			}
 
 		} else if (cmd == quit && arg_count == 0) {
 			printf("Call quit()\n");
-			packet = create_client_packet(cmd, &packet_size, NULL, NULL);
-			printf("%p\n", packet);
-			if (send(sockfd, packet, packet_size, 0) == -1) {
-				perror("send quit");
+
+			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
+				// TODO: Failed to create packet (key and/or value too long!)
+				perror("Make quit packet");
+				continue;
 			}
 
-			free(packet);
-			packet = NULL;
+			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+				perror("send quit");
+				continue; // TODO: Is this needed?
+			}
 			exit(0);
+
 		} else {
 			printf("Invalid command\n");
 		}
@@ -165,10 +184,7 @@ int main(int argc, char *argv[]) {
 		perror("recv");
 		exit(1);
 	}
-
 	buf[numbytes] = '\0';
-
-	printf("client: received '%s'\n",buf);
 	*/
 
 	close(sockfd);
