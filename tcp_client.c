@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	hints.ai_socktype = SOCK_STREAM;
 
 
-	if ((rv = getaddrinfo("127.0.0.1", SERVERPORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo("127.0.0.1", PORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
