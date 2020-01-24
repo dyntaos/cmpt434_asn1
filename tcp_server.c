@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 
-			switch (packet.message_command) {
+			switch ((kv_message_command) packet.message_command) {
 
 
 				case add:
@@ -177,11 +177,9 @@ int main(int argc, char *argv[]) {
 
 					if (!add_kv_bintree(tree, k, v)) {
 						//Failed to add to tree
-						//TODO
 						printf("Failed to add \"%s\":\"%s\"\n", k, v);
 
-						if (!write_packet(&packet, packet.message_command, REPLY, 0, 0, NULL, NULL)) {
-							// TODO: Failed to create packet (key and/or value too long!)
+						if (!write_packet(&packet, (kv_message_command) packet.message_command, REPLY, 0, 0, NULL, NULL)) {
 							perror("Error: Invalid arguments to add reply!");
 							free(k);
 							free(v);
@@ -288,7 +286,7 @@ int main(int argc, char *argv[]) {
 							perror("Error: Invalid arguments to remove reply!");
 							continue;
 						}
-						printf("SENT KEY: %s   SENT VALUE: %s   PAIRS TOTAL: %d   PAIRS NUM: %d\n\n", packet.key, packet.value, packet.kv_pairs_total, packet.kv_pair_number);
+
 					} else {
 						printf("Remove key: \"%s\": Key does not exist...\n", packet.key);
 

@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 
 #include <kv_packet.h>
 
@@ -32,8 +33,8 @@ boolean write_packet(
 
 	packet->message_command = msg_command;
 	packet->message_type = msg_direction;
-	packet->kv_pairs_total = kv_pairs_total;
-	packet->kv_pair_number = kv_pair_number;
+	packet->kv_pairs_total = htons(kv_pairs_total);
+	packet->kv_pair_number = htons(kv_pair_number);
 
 
 	//TODO REMOVE

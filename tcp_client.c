@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
-			if (packet.kv_pairs_total == 0) {
+			if (ntohs(packet.kv_pairs_total) == 0) {  // Using ntohs() is redundant as bin-endian 0 == little-endian 0
 				printf("Failed to add \"%s\":\"%s\"\n\n", t1, t2);
 			} else {
 				printf("Added \"%s\":\"%s\"\n\n", t1, t2);
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
-			if (packet.kv_pairs_total == 0) {
+			if (ntohs(packet.kv_pairs_total) == 0) {  // Using ntohs() is redundant as bin-endian 0 == little-endian 0
 				printf("Key \"%s\" does not exist\n\n", t1);
 			} else {
 				printf("\"%s\":\"%s\"\n\n", packet.key, packet.value);
@@ -182,16 +182,16 @@ int main(int argc, char *argv[]) {
 					exit(EXIT_FAILURE);
 				}
 
-				if (packet.kv_pairs_total == 0) {
+				if (htons(packet.kv_pairs_total) == 0) {
 					printf("Getall: 0 items\n\n");
 				} else {
-					if (packet.kv_pair_number == 1) {
-						printf("Getall: %u items\n", packet.kv_pairs_total);
+					if (ntohs(packet.kv_pair_number) == 1) {
+						printf("Getall: %u items\n", htons(packet.kv_pairs_total));
 					}
 					printf("\"%s\":\"%s\"\n", packet.key, packet.value);
 				}
 
-			} while(packet.kv_pair_number != packet.kv_pairs_total);
+			} while(ntohs(packet.kv_pair_number) != htons(packet.kv_pairs_total));
 			printf("\n");
 
 
@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
-			if (packet.kv_pairs_total == 0) {
+			if (ntohs(packet.kv_pairs_total) == 0) {  // Using ntohs() is redundant as bin-endian 0 == little-endian 0
 				printf("Key \"%s\" does not exist\n\n", t1);
 			} else {
 				printf("Removed \"%s\":\"%s\"\n\n", packet.key, packet.value);

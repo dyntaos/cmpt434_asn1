@@ -15,8 +15,8 @@ typedef enum kv_message_type_e {REQUEST, REPLY} kv_message_type;
 
 
 typedef struct kv_packet_t {
-	kv_message_command  message_command;
-	kv_message_type message_type;
+	uint8_t  message_command;
+	uint8_t message_type;
 	uint16_t kv_pairs_total;
 	uint16_t kv_pair_number;
 	char key[KV_STRING_FIELD_LEN];
