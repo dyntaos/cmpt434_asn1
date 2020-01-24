@@ -37,8 +37,6 @@ int main(int argc, char *argv[]) {
 	kv_message_command cmd;
 
 	int sockfd;
-	//int numbytes;
-	//char buf[MAXDATASIZE];
 	struct addrinfo hints;
 	struct addrinfo *servinfo, *p;
 	int rv;
