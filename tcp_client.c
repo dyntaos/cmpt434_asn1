@@ -18,7 +18,7 @@
 #include <kv_packet.h>
 #include <read_command.h>
 
-#define PORT "3490" // the port client will be connecting to
+#define PORT "3492" // the port client will be connecting to
 #define MAXDATASIZE 100 // max number of bytes we can get at once
 
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	hints.ai_socktype = SOCK_STREAM;
 
 
-	if ((rv = getaddrinfo("127.0.0.1", PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo("127.0.0.1", SERVERPORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
 				// TODO: Failed to create packet (key and/or value too long!)
-				perror("Error: Invalid arguments to add!");
+				fprintf(stderr, "Error: Invalid arguments to add!\n");
 				continue;
 			}
 
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
 				// TODO: Failed to create packet (key and/or value too long!)
-				perror("Make get_value packet");
+				fprintf(stderr, "Make get_value packet\n");
 				continue;
 			}
 
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
 				// TODO: Failed to create packet (key and/or value too long!)
-				perror("Make getall packet");
+				fprintf(stderr, "Make getall packet\n");
 				continue;
 			}
 
@@ -197,7 +197,7 @@ int main(int argc, char *argv[]) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, NULL)) {
 				// TODO: Failed to create packet (key and/or value too long!)
-				perror("Make remove packet");
+				fprintf(stderr, "Make remove packet\n");
 				continue;
 			}
 
@@ -226,7 +226,7 @@ int main(int argc, char *argv[]) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
 				// TODO: Failed to create packet (key and/or value too long!)
-				perror("Make quit packet");
+				fprintf(stderr, "Make quit packet\n");
 				continue;
 			}
 
@@ -242,14 +242,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	free_command(&t1, &t2);
-
-	/*
-	if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
-		perror("recv");
-		exit(1);
-	}
-	buf[numbytes] = '\0';
-	*/
 
 	close(sockfd);
 

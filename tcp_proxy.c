@@ -14,7 +14,8 @@
 #include <kv_packet.h>
 
 
-#define PORT "3490"  // the port users will be connecting to
+#define SERVERPORT "3490"  // the port users will be connecting to
+#define CLIENTPORT "3492"
 #define BACKLOG 10	 // how many pending connections queue will hold
 
 
@@ -58,7 +59,7 @@ int main(int argc, char *argv[]) {
 	struct addrinfo hints, *servinfo, *client_p;
 	struct sockaddr_storage client_addr;
 	socklen_t sin_size;
-	struct sigaction sa;
+	//struct sigaction sa;
 	int yes = 1;
 	char server_s[INET6_ADDRSTRLEN], client_s[INET6_ADDRSTRLEN];
 	int rv;
@@ -66,8 +67,6 @@ int main(int argc, char *argv[]) {
 	int server_fd;
 	struct addrinfo *server_p;
 
-	char *k, *v;
-	size_t malloc_len, string_len;
 	ssize_t recv_bytes;
 	kv_packet packet;
 
@@ -84,7 +83,7 @@ int main(int argc, char *argv[]) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if ((rv = getaddrinfo("127.0.0.1", PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo("127.0.0.1", SERVERPORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return EXIT_FAILURE;
 	}
@@ -126,7 +125,7 @@ int main(int argc, char *argv[]) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 
-	if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(NULL, CLIENTPORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -154,7 +153,7 @@ int main(int argc, char *argv[]) {
 
 		if (bind(client_listen_fd, client_p->ai_addr, client_p->ai_addrlen) == -1) {
 			close(client_listen_fd);
-			perror("server: bind");
+			perror("server: bind"); // TODO
 			continue;
 		}
 
@@ -179,7 +178,6 @@ int main(int argc, char *argv[]) {
 
 
 	for (;;) {
-		int quit_flag = 0;
 
 		sin_size = sizeof client_addr;
 		client_connection_fd = accept(client_listen_fd, (struct sockaddr*) &client_addr, &sin_size);
@@ -203,11 +201,14 @@ int main(int argc, char *argv[]) {
 				break;
 			}
 
+			printf("Got packet from client\n");
+
 			if (send(server_fd, &packet, sizeof(kv_packet), 0) == -1) {
 				perror("Error: Failed to forward packet!");
 				continue; // TODO: Is this needed?
 			}
 
+			printf("Forwarded packet from client to server\n");
 
 			do {
 				if ((recv_bytes = recv(server_fd, &packet, sizeof(kv_packet), 0)) == -1) {
@@ -220,12 +221,17 @@ int main(int argc, char *argv[]) {
 					break;
 				}
 
+				printf("Got reply packet from server (%u of %u)\n", ntohs(packet.kv_pair_number), ntohs(packet.kv_pairs_total));
+
+				proxy_string_modifier(packet.key);
 				proxy_string_modifier(packet.value);
 
-				if (send(server_fd, &packet, sizeof(kv_packet), 0) == -1) {
+				if (send(client_connection_fd, &packet, sizeof(kv_packet), 0) == -1) {
 					perror("Error: Failed to forward packet!");
 					continue; // TODO: Is this needed?
 				}
+
+				printf("Forwarded packet from server to client\n");
 
 			} while(ntohs(packet.kv_pair_number) != htons(packet.kv_pairs_total));
 

@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 	struct addrinfo *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
-	struct sigaction sa;
+	//struct sigaction sa;
 	int yes = 1;
 	char s[INET6_ADDRSTRLEN];
 	int rv;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
 
-	if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(NULL, SERVERPORT, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
 	}
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
 						printf("Failed to add \"%s\":\"%s\"\n", k, v);
 
 						if (!write_packet(&packet, (kv_message_command) packet.message_command, REPLY, 0, 0, NULL, NULL)) {
-							perror("Error: Invalid arguments to add reply!");
+							fprintf(stderr, "Error: Invalid arguments to add reply!\n");
 							free(k);
 							free(v);
 							k = v = NULL;
@@ -184,7 +184,7 @@ int main(int argc, char *argv[]) {
 
 						if (!write_packet(&packet, get_value, REPLY, 1, 1, packet.key, v)) {
 							// Execution should never reach here
-							perror("Error: Invalid arguments to get_value reply!");
+							fprintf(stderr, "Error: Invalid arguments to get_value reply!\n");
 						}
 
 					} else {
@@ -192,7 +192,7 @@ int main(int argc, char *argv[]) {
 
 						if (!write_packet(&packet, get_value, REPLY, 0, 0, NULL, NULL)) {
 							// Execution should never reach here
-							perror("Error: Invalid arguments to get_value error reply!");
+							fprintf(stderr, "Error: Invalid arguments to get_value error reply!\n");
 						}
 					}
 
@@ -210,7 +210,7 @@ int main(int argc, char *argv[]) {
 					if (size_kv_bintree(tree) == 0) {
 						if (!write_packet(&packet, get_all, REPLY, 0, 0, NULL, NULL)) {
 							// Execution should never reach here
-							perror("Error: Invalid arguments to get_all reply!");
+							fprintf(stderr, "Error: Invalid arguments to get_all reply!\n");
 						}
 
 						printf("Getall: 0 items\n");
@@ -230,7 +230,7 @@ int main(int argc, char *argv[]) {
 
 							if (!write_packet(&packet, get_all, REPLY, size_kv_bintree(tree), i, k, v)) {
 								// Execution should never reach here
-								perror("Error: Invalid arguments to get_all iterator reply!");
+								fprintf(stderr, "Error: Invalid arguments to get_all iterator reply!\n");
 							}
 
 							printf("%lu  \"%s\":\"%s\"\n", i, k, v);
@@ -256,7 +256,7 @@ int main(int argc, char *argv[]) {
 
 						if (!write_packet(&packet, remove_cmd, REPLY, 1, 1, packet.key, v)) {
 							// Execution should never reach here
-							perror("Error: Invalid arguments to remove reply!");
+							fprintf(stderr, "Error: Invalid arguments to remove reply!\n");
 							continue;
 						}
 
@@ -265,7 +265,7 @@ int main(int argc, char *argv[]) {
 
 						if (!write_packet(&packet, remove_cmd, REPLY, 0, 0, NULL, NULL)) {
 							// Execution should never reach here
-							perror("Error: Invalid arguments to remove error reply!");
+							fprintf(stderr, "Error: Invalid arguments to remove error reply!\n");
 							continue;
 						}
 					}

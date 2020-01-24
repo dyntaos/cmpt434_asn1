@@ -3,3 +3,4 @@ build/
 tcp_server
 kv_bintree_test
 tcp_client
+tcp_proxy
