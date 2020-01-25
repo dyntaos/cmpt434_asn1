@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <ctype.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
@@ -35,7 +36,6 @@ int main(int argc, char *argv[]) {
 	struct addrinfo *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information
 	socklen_t sin_size;
-	//struct sigaction sa;
 	int yes = 1;
 	char s[INET6_ADDRSTRLEN];
 	int rv;
@@ -49,6 +49,29 @@ int main(int argc, char *argv[]) {
 
 	(void) argc;
 	(void) argv;
+
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s PortNumber\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	if (strlen(argv[1]) > 5) {
+		fprintf(stderr, "Invalid port number\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (size_t i = 0; i < strlen(argv[1]); i++) {
+		if (!isdigit(argv[1][i])) {
+			fprintf(stderr, "The port number provided must be numeric\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (strtoul(argv[1], NULL, 10) > 65535) {
+		fprintf(stderr, "Port number must be between 0 to 65535\n");
+		exit(EXIT_FAILURE);
+	}
+
 
 	tree = alloc_kv_bintree();
 
