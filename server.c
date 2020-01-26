@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 
 	(void) argc;
 	(void) argv;
-	(void) addrlen; // TODO
+	(void) addrlen;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s PortNumber\n", argv[0]);
@@ -85,6 +85,7 @@ int main(int argc, char *argv[]) {
 
 	for (;;) {
 
+		quit_flag = 0;
 		new_fd = SOCKET_ACCEPT(sock_fd);
 		if (new_fd < 0) continue;
 
