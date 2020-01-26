@@ -90,12 +90,12 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
 				perror("Error: Failed to send add command!");
 				continue; // TODO: Is this needed?
 			}
 
-			if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+			if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
 				perror("recv"); // TODO
 				exit(EXIT_FAILURE);
 			}
@@ -119,12 +119,12 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
 				perror("send getvalue");
 				continue; // TODO: Is this needed?
 			}
 
-			if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+			if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
 				perror("recv"); // TODO
 				exit(EXIT_FAILURE);
 			}
@@ -148,13 +148,13 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
 				perror("send");
 				continue; // TODO: Is this needed
 			}
 
 			do {
-				if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+				if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
 					perror("recv"); // TODO
 					exit(EXIT_FAILURE);
 				}
@@ -185,12 +185,12 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
 				perror("send remove");
 				continue; // TODO: Is this needed?
 			}
 
-			if ((recv_bytes = recv(sockfd, &packet, sizeof(kv_packet), 0)) == -1) {
+			if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
 				perror("recv"); // TODO
 				exit(EXIT_FAILURE);
 			}
@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
 				continue;
 			}
 
-			if (send(sockfd, &packet, sizeof(kv_packet), 0) == -1) {
+			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
 				perror("send quit");
 				continue; // TODO: Is this needed?
 			}
