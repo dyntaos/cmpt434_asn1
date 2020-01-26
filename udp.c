@@ -11,7 +11,7 @@
 
 
 
-int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
+int udp_client_init(char *host, char *port) {
 	struct addrinfo hints;
 	struct addrinfo *servinfo, *p;
 	int sockfd, rv;
@@ -32,11 +32,12 @@ int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
 			continue;
 		}
 
-		if (host != NULL && bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+		if (host == NULL && (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)) {
 			close(sockfd);
 			perror("listener: bind");
 			continue;
 		}
+
 		break;
 	}
 
@@ -45,29 +46,28 @@ int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
 		return -2;
 	}
 
-	*ainfo = p;
 	freeaddrinfo(servinfo);
 
 	return sockfd;
 }
 
 
-int udp_server_init(char *port, struct addrinfo **ainfo) {
-	return udp_client_init(NULL, port, ainfo);
+int udp_server_init(char *port) {
+	return udp_client_init(NULL, port);
 }
 
 
-int udp_receive(int socket, void *buffer, size_t buffer_len, struct sockaddr *p, socklen_t *addr_len) {
+int udp_receive(int socket, void *buffer, size_t buffer_len) {
 	int recvlen;
 
-	recvlen = recvfrom(socket, buffer, buffer_len, 0, p, addr_len);
+	recvlen = recv(socket, buffer, buffer_len, 0);
 	return recvlen;
 }
 
 
-int udp_send(int socket, void *buffer, size_t buffer_len, struct sockaddr *p) {
+int udp_send(int socket, void *buffer, size_t buffer_len) {
 	int recvlen;
 
-	recvlen = sendto(socket, buffer, buffer_len, 0, ((struct addrinfo*) p)->ai_addr, ((struct addrinfo*) p)->ai_addrlen);
+	recvlen = send(socket, buffer, buffer_len, 0);
 	return recvlen;
 }

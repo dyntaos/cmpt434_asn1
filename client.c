@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
 	validate_cli_args(argc, argv);
 
-	sockfd = SOCKET_CLIENT_INIT(argv[1], argv[2], &p);
+	sockfd = SOCKET_CLIENT_INIT(argv[1], argv[2]);
 	if (sockfd <= 0) {
 		fprintf(stderr, "Failed to open connection to server!\n");
 		exit(EXIT_FAILURE);

@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 	 *     Prepare connection to server      *
 	 *****************************************/
 
-	server_fd = SOCKET_CLIENT_INIT(argv[2], argv[3], &server_p);
+	server_fd = SOCKET_CLIENT_INIT(argv[2], argv[3]);
 	if (server_fd <= 0) {
 		fprintf(stderr, "Failed to open connection to server!\n");
 		exit(EXIT_FAILURE);
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
 
 			printf("Got packet from client\n");
 
-			if (SOCKET_SEND(server_fd, &packet, sizeof(kv_packet), (struct sockaddr*) server_p) == -1) {
+			if (SOCKET_SEND(server_fd, &packet, sizeof(kv_packet)) == -1) {
 				perror("Error: Failed to forward packet to server!");
 				continue; // TODO: Is this needed?
 			}
@@ -165,10 +165,13 @@ int main(int argc, char *argv[]) {
 			printf("Forwarded packet from client to server\n");
 
 			do {
-				if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
+				if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet))) == -1) {
 					perror("recv"); // TODO
 					exit(EXIT_FAILURE);
 				}
+
+				printf("Received %d bytes from server\n", recv_bytes);
+				printf("Server returned: \"%s\":\"%s\"\n", packet.key, packet.value);
 
 				if (recv_bytes == 0) {
 					printf("Client connection closed...\n");
