@@ -1,13 +1,17 @@
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include <errno.h>
 #include <string.h>
-//#include <netdb.h>
-//#include <sys/types.h>
-//#include <netinet/in.h>
-//#include <sys/socket.h>
-//#include <arpa/inet.h>
 #include <ctype.h>
 
 #include <kv_network.h>
@@ -77,7 +81,6 @@ int main(int argc, char *argv[]) {
 		cmd = read_command(&t1, &t2);
 		if (t1 != NULL) arg_count++;
 		if (t2 != NULL) arg_count++;
-		//printf("cmd: %u  t1: \"%s\"  t2: \"%s\"\n", cmd, t1, t2);
 
 		if (cmd == add && arg_count == 2) {
 
@@ -131,7 +134,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
-			if (ntohs(packet.kv_pairs_total) == 0) {  // Using ntohs() is redundant as bin-endian 0 == little-endian 0
+			if (ntohs(packet.kv_pairs_total) == 0) {
 				printf("Key \"%s\" does not exist\n\n", t1);
 			} else {
 				printf("\"%s\":\"%s\"\n\n", packet.key, packet.value);
@@ -197,7 +200,7 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
-			if (ntohs(packet.kv_pairs_total) == 0) {  // Using ntohs() is redundant as bin-endian 0 == little-endian 0
+			if (ntohs(packet.kv_pairs_total) == 0) {
 				printf("Key \"%s\" does not exist\n\n", t1);
 			} else {
 				printf("Removed \"%s\":\"%s\"\n\n", packet.key, packet.value);

@@ -1,7 +1,18 @@
-#include <kv_bintree.h>
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <kv_bintree.h>
 
 
 kv_binarytree *alloc_kv_bintree(void) {

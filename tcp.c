@@ -1,3 +1,13 @@
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -28,12 +38,10 @@ int tcp_client_init(char *host, char *port) {
 
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-			//perror("Error opening socket for server connection");
 			continue;
 		}
 
 		if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
-			//perror("Error connecting to server");
 			close(fd);
 			continue;
 		}
@@ -68,7 +76,6 @@ int tcp_server_init(char *port) {
 		return -1;
 	}
 
-	// loop through all the results and bind to the first we can
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(
 				p->ai_family,

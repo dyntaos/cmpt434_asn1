@@ -1,14 +1,17 @@
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-//#include <errno.h>
 #include <string.h>
-//#include <sys/types.h>
-//#include <sys/socket.h>
-//#include <netinet/in.h>
-//#include <netdb.h>
-//#include <arpa/inet.h>
-//#include <sys/wait.h>
 #include <ctype.h>
 
 #include <kv_network.h>
@@ -90,10 +93,7 @@ void validate_cli_args(int argc, char *argv[]) {
 
 int main(int argc, char *argv[]) {
 	int client_listen_fd, client_connection_fd, server_fd;
-	//struct addrinfo hints, *servinfo, *client_p, *server_p;
 	struct addrinfo *server_p;
-	//struct sockaddr_storage client_addr;
-	//socklen_t sin_size;
 	int recv_bytes;
 	kv_packet packet;
 
@@ -134,7 +134,6 @@ int main(int argc, char *argv[]) {
 
 	for (;;) {
 
-		//sin_size = sizeof client_addr;
 		client_connection_fd = tcp_accept(client_listen_fd);
 		if (client_connection_fd == -1) {
 			perror("accept");
@@ -167,7 +166,6 @@ int main(int argc, char *argv[]) {
 
 			do {
 				if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
-				//if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet), ((struct addrinfo*) server_p)->ai_addr, ((struct addrinfo*) server_p)->ai_addrlen)) == -1) {
 					perror("recv"); // TODO
 					exit(EXIT_FAILURE);
 				}

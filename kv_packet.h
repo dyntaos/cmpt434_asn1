@@ -1,3 +1,13 @@
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #ifndef _KV_PACKET_H
 #define _KV_PACKET_H
 

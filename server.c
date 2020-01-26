@@ -1,10 +1,18 @@
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
-//#include <errno.h>
 #include <string.h>
-//#include <sys/wait.h>
 
 #include <kv_network.h>
 #include <kv_packet.h>

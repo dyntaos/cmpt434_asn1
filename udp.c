@@ -1,3 +1,13 @@
+/**********************************
+ **           CMPT 434           **
+ **  University of Saskatchewan  **
+ **         Assignment 1         **
+ **----------------------------- **
+ **          Kale Yuzik          **
+ **     kay851@mail.usask.ca     **
+ **      kay851    11071571      **
+ **********************************/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -18,7 +28,7 @@ int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;// AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
-	//if (host == NULL) hints.ai_flags = AI_PASSIVE;
+	if (host == NULL) hints.ai_flags = AI_PASSIVE;
 
 	if ((rv = getaddrinfo(host, port, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -30,46 +40,7 @@ int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
 			perror("listener: socket");
 			continue;
 		}
-		break;
-	}
-
-	if (p == NULL) {
-		fprintf(stderr, "listener: failed to bind socket\n");
-		return -2;
-	}
-
-	*ainfo = p;
-
-	//freeaddrinfo(servinfo);
-
-	return sockfd;
-}
-
-
-int udp_server_init(char *port, struct addrinfo **ainfo) {
-	//return udp_client_init(NULL, port, ainfo);
-
-	struct addrinfo hints;
-	struct addrinfo *servinfo, *p;
-	int sockfd, rv;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return -1;
-	}
-
-	for (p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-			perror("listener: socket");
-			continue;
-		}
-
-		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+		if (host == NULL && bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sockfd);
 			perror("listener: bind");
 			continue;
@@ -83,10 +54,12 @@ int udp_server_init(char *port, struct addrinfo **ainfo) {
 	}
 
 	*ainfo = p;
-
-	//freeaddrinfo(servinfo);
-
 	return sockfd;
+}
+
+
+int udp_server_init(char *port, struct addrinfo **ainfo) {
+	return udp_client_init(NULL, port, ainfo);
 }
 
 
