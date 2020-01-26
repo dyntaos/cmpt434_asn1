@@ -4,3 +4,5 @@ tcp_server
 kv_bintree_test
 tcp_client
 tcp_proxy
+udp_server
+tcp.o
