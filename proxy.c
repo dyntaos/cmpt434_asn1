@@ -150,14 +150,15 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
-			if (recv_bytes == 0) {
+			// Don't forward "quit" packets
+			if (recv_bytes == 0 || (kv_message_command) packet.message_command == quit) {
 				printf("Client connection closed...\n");
 				break;
 			}
 
 			printf("Got packet from client\n");
 
-			if (SOCKET_SEND(server_fd, &packet, sizeof(kv_packet), (struct sockaddr*) server_p) == -1) {
+			if (SOCKET_SEND(server_fd, &packet, sizeof(kv_packet), server_p->ai_addr, server_p->ai_addrlen) == -1) {
 				perror("Error: Failed to forward packet to server!");
 				continue; // TODO: Is this needed?
 			}
@@ -166,6 +167,7 @@ int main(int argc, char *argv[]) {
 
 			do {
 				if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
+				//if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet), ((struct addrinfo*) server_p)->ai_addr, ((struct addrinfo*) server_p)->ai_addrlen)) == -1) {
 					perror("recv"); // TODO
 					exit(EXIT_FAILURE);
 				}

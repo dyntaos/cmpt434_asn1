@@ -89,6 +89,8 @@ int main(int argc, char *argv[]) {
 				exit(EXIT_FAILURE);
 			}
 
+			printf("Received packet...\n");
+
 			if (recv_bytes == 0) {
 				break;
 			}
@@ -130,7 +132,7 @@ int main(int argc, char *argv[]) {
 						packet.message_type = REPLY;
 					}
 
-					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
+					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, addrlen) == -1) {
 						perror("Error: Failed to send add command!");
 					}
 
@@ -158,7 +160,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet),  (struct sockaddr*) &client_addr) == -1) {
+					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet),  (struct sockaddr*) &client_addr, addrlen) == -1) {
 						perror("Error: Failed to send get_value reply!");
 					}
 
@@ -177,7 +179,7 @@ int main(int argc, char *argv[]) {
 
 						printf("Getall: 0 items\n");
 
-						if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
+						if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, addrlen) == -1) {
 							perror("Error: Failed to send get_value reply!");
 						}
 
@@ -197,7 +199,7 @@ int main(int argc, char *argv[]) {
 
 							printf("%lu  \"%s\":\"%s\"\n", i, k, v);
 
-							if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
+							if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, addrlen) == -1) {
 								perror("Error: Failed to send get_value iterator reply!");
 							}
 
@@ -232,7 +234,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
+					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, addrlen) == -1) {
 						perror("Error: Failed to send remove reply!");
 					}
 

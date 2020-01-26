@@ -28,12 +28,12 @@ int tcp_client_init(char *host, char *port) {
 
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
-			perror("Error opening socket for server connection");
+			//perror("Error opening socket for server connection");
 			continue;
 		}
 
 		if (connect(fd, p->ai_addr, p->ai_addrlen) == -1) {
-			perror("Error connecting to server");
+			//perror("Error connecting to server");
 			close(fd);
 			continue;
 		}
