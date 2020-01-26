@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
+//#include <errno.h>
 #include <string.h>
-#include <netdb.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+//#include <netdb.h>
+//#include <sys/types.h>
+//#include <netinet/in.h>
+//#include <sys/socket.h>
+//#include <arpa/inet.h>
+#include <ctype.h>
 
 #include <kv_network.h>
 #include <kv_packet.h>
@@ -15,22 +16,49 @@
 
 
 
+void validate_cli_args(int argc, char *argv[]) {
+	if (argc != 3) {
+		printf("Usage: %s ServerHostname ServerPort\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	if (strlen(argv[1]) < 2) {
+		fprintf(stderr, "Provide a valid server hostname or IP address\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (strlen(argv[2]) > 5) {
+		fprintf(stderr, "Invalid server port number\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (size_t i = 0; i < strlen(argv[2]); i++) {
+		if (!isdigit(argv[2][i])) {
+			fprintf(stderr, "The server port number provided must be numeric\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (strtoul(argv[2], NULL, 10) > 65535) {
+		fprintf(stderr, "Server port number must be between 0 to 65535\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+
 int main(int argc, char *argv[]) {
 	char *t1 = 0, *t2 = 0;
 	kv_message_command cmd;
 	struct addrinfo *p;
 	int sockfd;
-	//int rv;
 
 
 	(void) argc;
 	(void) argv;
 	(void) p;
 
-	//if (argc != 2) {
-	//    fprintf(stderr,"usage: client hostname\n");
-	//    exit(1);
-	//}
+
+	validate_cli_args(argc, argv);
 
 	sockfd = SOCKET_CLIENT_INIT(argv[1], argv[2], &p);
 	if (sockfd <= 0) {

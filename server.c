@@ -2,14 +2,39 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
-#include <errno.h>
+//#include <errno.h>
 #include <string.h>
-#include <sys/wait.h>
+//#include <sys/wait.h>
 
 #include <kv_network.h>
 #include <kv_packet.h>
 #include <kv_bintree.h>
 
+
+
+void validate_cli_args(int argc, char *argv[]) {
+	if (argc != 2) {
+		printf("Usage: %s PortNumber\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
+
+	if (strlen(argv[1]) > 5) {
+		fprintf(stderr, "Invalid port number\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (size_t i = 0; i < strlen(argv[1]); i++) {
+		if (!isdigit(argv[1][i])) {
+			fprintf(stderr, "The port number provided must be numeric\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (strtoul(argv[1], NULL, 10) > 65535) {
+		fprintf(stderr, "Port number must be between 0 to 65535\n");
+		exit(EXIT_FAILURE);
+	}
+}
 
 
 int main(int argc, char *argv[]) {
@@ -31,28 +56,8 @@ int main(int argc, char *argv[]) {
 	(void) argv;
 	(void) addrlen;
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: %s PortNumber\n", argv[0]);
-		exit(EXIT_FAILURE);
-	}
 
-	if (strlen(argv[1]) > 5) {
-		fprintf(stderr, "Invalid port number\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for (size_t i = 0; i < strlen(argv[1]); i++) {
-		if (!isdigit(argv[1][i])) {
-			fprintf(stderr, "The port number provided must be numeric\n");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	if (strtoul(argv[1], NULL, 10) > 65535) {
-		fprintf(stderr, "Port number must be between 0 to 65535\n");
-		exit(EXIT_FAILURE);
-	}
-
+	validate_cli_args(argc, argv);
 
 	tree = alloc_kv_bintree();
 
@@ -70,7 +75,10 @@ int main(int argc, char *argv[]) {
 		new_fd = SOCKET_ACCEPT(sock_fd);
 		if (new_fd < 0) continue;
 
+#ifdef _TCP
+		// Don't print this message if using UDP
 		printf("Server: Got connection\n");
+#endif // _TCP
 
 		for (;;) {
 
@@ -122,7 +130,7 @@ int main(int argc, char *argv[]) {
 						packet.message_type = REPLY;
 					}
 
-					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, sizeof(client_addr)) == -1) {
+					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
 						perror("Error: Failed to send add command!");
 					}
 
@@ -150,7 +158,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet),  (struct sockaddr*) &client_addr, sizeof(client_addr)) == -1) {
+					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet),  (struct sockaddr*) &client_addr) == -1) {
 						perror("Error: Failed to send get_value reply!");
 					}
 
@@ -169,7 +177,7 @@ int main(int argc, char *argv[]) {
 
 						printf("Getall: 0 items\n");
 
-						if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, sizeof(client_addr)) == -1) {
+						if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
 							perror("Error: Failed to send get_value reply!");
 						}
 
@@ -189,7 +197,7 @@ int main(int argc, char *argv[]) {
 
 							printf("%lu  \"%s\":\"%s\"\n", i, k, v);
 
-							if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, sizeof(client_addr)) == -1) {
+							if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
 								perror("Error: Failed to send get_value iterator reply!");
 							}
 
@@ -224,7 +232,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, sizeof(client_addr)) == -1) {
+					if (SOCKET_SEND(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr) == -1) {
 						perror("Error: Failed to send remove reply!");
 					}
 

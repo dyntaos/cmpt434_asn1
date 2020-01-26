@@ -16,17 +16,16 @@ int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
 	struct addrinfo *servinfo, *p;
 	int sockfd, rv;
 
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
-	if (host == NULL) hints.ai_flags = AI_PASSIVE; // use my IP
+	if (host == NULL) hints.ai_flags = AI_PASSIVE;
 
 	if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return -1;
 	}
 
-	// loop through all the results and bind to the first we can
 	for (p = servinfo; p != NULL; p = p->ai_next) {
 		if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
 			perror("listener: socket");
