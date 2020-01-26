@@ -22,17 +22,28 @@ BIN = $(BUILD)/bin/$(ARCH)
 OBJ = $(BUILD)/obj/$(ARCH)
 LIB = $(BUILD)/lib/$(ARCH)
 
-.PHONY: all mkdirs clean server
+.PHONY: all mkdirs clean
 
-all: mkdirs $(BIN)/kv_bintree_test $(BIN)/tcp_client $(BIN)/tcp_server $(BIN)/udp_server $(BIN)/tcp_proxy
+all: mkdirs \
+	$(BIN)/kv_bintree_test \
+	$(BIN)/tcp_client \
+	$(BIN)/tcp_server \
+	$(BIN)/udp_server \
+	$(BIN)/tcp_proxy \
+	$(BIN)/udp_proxy
 
 mkdirs:
 	mkdir -p $(BIN) $(OBJ) $(LIB)
 
 clean:
-	rm -rf ./build ./kv_bintree_test ./tcp_client ./tcp_proxy ./tcp_server
+	rm -rf ./build \
+			./kv_bintree_test \
+			./tcp_client \
+			./tcp_server \
+			./udp_server \
+			./tcp_proxy \
+			./udp_proxy
 
-server: $(BIN)/tcp_server
 
 
 $(OBJ)/kv_bintree.o: kv_bintree.c
@@ -46,44 +57,66 @@ $(BIN)/kv_bintree_test: $(OBJ)/kv_bintree.o $(OBJ)/kv_bintree_test.o
 	ln -fs $@ ./kv_bintree_test
 
 
-$(OBJ)/tcp_client.o: tcp_client.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
-
-$(OBJ)/read_command.o: read_command.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
-
-$(OBJ)/kv_packet.o: kv_packet.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
-
-$(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o $(OBJ)/kv_packet.o
-	$(CC) -o $@ $^ -lreadline
-	ln -fs $@ ./tcp_client
 
 $(OBJ)/tcp.o: tcp.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
 
+$(OBJ)/udp.o: udp.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
+
+
+
+$(OBJ)/read_command.o: read_command.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
+
+
+$(OBJ)/kv_packet.o: kv_packet.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
+
+
+
+$(OBJ)/tcp_client.o: client.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -D_TCP -I . -c -o $@ $<
+
+$(BIN)/tcp_client: $(OBJ)/read_command.o $(OBJ)/tcp_client.o $(OBJ)/tcp.o $(OBJ)/kv_packet.o
+	$(CC) -o $@ $^ -lreadline
+	ln -fs $@ ./tcp_client
+
+
+
+
+
+
 $(OBJ)/tcp_server.o: server.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -DTCP -I . -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -D_TCP -I . -c -o $@ $<
 
 $(BIN)/tcp_server: $(OBJ)/tcp_server.o $(OBJ)/tcp.o $(OBJ)/kv_packet.o $(OBJ)/kv_bintree.o
 	$(CC) -o $@ $^
 	ln -fs $@ ./tcp_server
 
 
-$(OBJ)/udp.o: udp.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
 
 $(OBJ)/udp_server.o: server.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -DUDP -I . -c -o $@ $<
+	$(CC) $(CFLAGS) $(CPPFLAGS) -D_UDP -I . -c -o $@ $<
 
 $(BIN)/udp_server: $(OBJ)/udp_server.o $(OBJ)/udp.o $(OBJ)/kv_packet.o $(OBJ)/kv_bintree.o
 	$(CC) -o $@ $^
 	ln -fs $@ ./udp_server
 
 
-$(OBJ)/tcp_proxy.o: tcp_proxy.c
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I . -c -o $@ $<
 
-$(BIN)/tcp_proxy: $(OBJ)/tcp_proxy.o
+$(OBJ)/tcp_proxy.o: proxy.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -D_TCP -I . -c -o $@ $<
+
+$(BIN)/tcp_proxy: $(OBJ)/tcp_proxy.o $(OBJ)/tcp.o
 	$(CC) -o $@ $^
 	ln -fs $@ ./tcp_proxy
+
+
+
+$(OBJ)/udp_proxy.o: proxy.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -D_UDP -I . -c -o $@ $<
+
+$(BIN)/udp_proxy: $(OBJ)/udp_proxy.o $(OBJ)/udp.o $(OBJ)/tcp.o
+	$(CC) -o $@ $^
+	ln -fs $@ ./udp_proxy

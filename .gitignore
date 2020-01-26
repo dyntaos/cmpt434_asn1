@@ -6,3 +6,4 @@ tcp_client
 tcp_proxy
 udp_server
 tcp.o
+udp_proxy

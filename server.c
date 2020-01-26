@@ -11,29 +11,6 @@
 #include <kv_bintree.h>
 
 
-#ifdef TCP
-
-#define		SOCKET_INIT(port, addrinfo)									tcp_init(port)
-#define		SOCKET_ACCEPT(socket_fd)									tcp_accept(socket_fd)
-#define		SOCKET_RECEIVE(socket, buffer, buffer_len, p, addr_len)		tcp_receive(socket, buffer, buffer_len)
-#define		SOCKET_SEND(socket, buffer, buffer_len, p, addr_len)		tcp_send(socket, buffer, buffer_len)
-
-#else
-
-#ifdef UDP
-
-#define		SOCKET_INIT(port, addrinfo)									udp_init(port, addrinfo)
-#define		SOCKET_ACCEPT(socket_fd)									socket_fd
-#define		SOCKET_RECEIVE(socket, buffer, buffer_len, p, addr_len)		udp_receive(socket, buffer, buffer_len, p, addr_len)
-#define		SOCKET_SEND(socket, buffer, buffer_len, p, addr_len)		udp_send(socket, buffer, buffer_len, p)
-
-#else
-
-#error Define "TCP" or "UDP" when compiling
-
-#endif
-#endif
-
 
 int main(int argc, char *argv[]) {
 	int sock_fd, new_fd;
@@ -46,7 +23,7 @@ int main(int argc, char *argv[]) {
 	int quit_flag = 0;
 	socklen_t addrlen;
 
-#ifdef UDP
+#ifdef _UDP
 	struct addrinfo *p;
 #endif
 
@@ -79,7 +56,11 @@ int main(int argc, char *argv[]) {
 
 	tree = alloc_kv_bintree();
 
-	sock_fd = SOCKET_INIT(argv[1], &p);
+	sock_fd = SOCKET_SERVER_INIT(argv[1], &p);
+	if (sock_fd <= 0) {
+		fprintf(stderr, "Failed to open socket to listen for client connections!\n");
+		exit(EXIT_FAILURE);
+	}
 
 	printf("Server: Waiting for connections...\n");
 

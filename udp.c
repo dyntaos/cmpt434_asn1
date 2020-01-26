@@ -5,32 +5,21 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 
-//#include <netinet/in.h>
-
+#define _IGNORE_PROTO_DEFINE
 #include "kv_network.h"
 
 
-// Directly from beej's network guide:
-void *get_in_addr(struct sockaddr *sa) {
-	if (sa->sa_family == AF_INET) {
-		return &(((struct sockaddr_in*)sa)->sin_addr);
-	}
-
-	return &(((struct sockaddr_in6*)sa)->sin6_addr);
-}
 
 
-int udp_init(char *port, struct addrinfo **ainfo) {
+int udp_client_init(char *host, char *port, struct addrinfo **ainfo) {
 	struct addrinfo hints;
 	struct addrinfo *servinfo, *p;
 	int sockfd, rv;
 
-
-
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC; // set to AF_INET to force IPv4
 	hints.ai_socktype = SOCK_DGRAM;
-	hints.ai_flags = AI_PASSIVE; // use my IP
+	if (host == NULL) hints.ai_flags = AI_PASSIVE; // use my IP
 
 	if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -44,12 +33,11 @@ int udp_init(char *port, struct addrinfo **ainfo) {
 			continue;
 		}
 
-		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+		if (host != NULL && bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sockfd);
 			perror("listener: bind");
 			continue;
 		}
-
 		break;
 	}
 
@@ -64,6 +52,12 @@ int udp_init(char *port, struct addrinfo **ainfo) {
 	return sockfd;
 }
 
+
+int udp_server_init(char *port, struct addrinfo **ainfo) {
+	return udp_client_init(NULL, port, ainfo);
+}
+
+
 int udp_receive(int socket, void *buffer, size_t buffer_len, struct sockaddr *p, socklen_t *addr_len) {
 	int recvlen;
 
@@ -71,10 +65,10 @@ int udp_receive(int socket, void *buffer, size_t buffer_len, struct sockaddr *p,
 	return recvlen;
 }
 
+
 int udp_send(int socket, void *buffer, size_t buffer_len, struct sockaddr *p) {
 	int recvlen;
 
 	recvlen = sendto(socket, buffer, buffer_len, 0, ((struct addrinfo*) p)->ai_addr, ((struct addrinfo*) p)->ai_addrlen);
-
 	return recvlen;
 }
