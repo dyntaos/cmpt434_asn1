@@ -47,22 +47,17 @@ boolean write_packet(
 	packet->kv_pair_number = htons(kv_pair_number);
 
 
-	//TODO REMOVE
-	//memset(packet->key, 0, KV_STRING_FIELD_LEN);
-	//memset(packet->value, 0, KV_STRING_FIELD_LEN);
-
-
 	if (key != NULL) {
 		memcpy(packet->key, key, key_len);
 	}
 	// Write NULL to unused characters to prevent leaking of uninitialized memory
-	memset(packet->key + key_len, 0, KV_STRING_FIELD_LEN - key_len); // TODO: Check the length written here
+	memset(packet->key + key_len, 0, KV_STRING_FIELD_LEN - key_len);
 
 	if (value != NULL) {
 		memcpy(packet->value, value, value_len);
 	}
 	// Write NULL to unused characters to prevent leaking of uninitialized memory
-	memset(packet->value + value_len, 0, KV_STRING_FIELD_LEN - value_len); // TODO: Check the length written here
+	memset(packet->value + value_len, 0, KV_STRING_FIELD_LEN - value_len);
 
 	return TRUE;
 }

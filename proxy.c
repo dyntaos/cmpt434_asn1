@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
 		for (;;) {
 
 			if ((recv_bytes = tcp_receive(client_connection_fd, &packet, sizeof(kv_packet))) == -1) {
-				perror("recv"); // todo
+				perror("Error: Failed to receive command from client!");
 				exit(EXIT_FAILURE);
 			}
 
@@ -159,14 +159,14 @@ int main(int argc, char *argv[]) {
 
 			if (SOCKET_SEND(server_fd, &packet, sizeof(kv_packet), server_p->ai_addr, server_p->ai_addrlen) == -1) {
 				perror("Error: Failed to forward packet to server!");
-				continue; // TODO: Is this needed?
+				continue;
 			}
 
 			printf("Forwarded packet from client to server\n");
 
 			do {
 				if ((recv_bytes = SOCKET_RECEIVE(server_fd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
-					perror("recv"); // TODO
+					perror("Error: Failed to receive reply from server!");
 					exit(EXIT_FAILURE);
 				}
 
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
 
 				if (tcp_send(client_connection_fd, &packet, sizeof(kv_packet)) == -1) {
 					perror("Error: Failed to forward packet to client!");
-					continue; // TODO: Is this needed?
+					continue;
 				}
 
 				printf("Forwarded packet from server to client\n");

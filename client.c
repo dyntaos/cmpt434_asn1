@@ -85,18 +85,18 @@ int main(int argc, char *argv[]) {
 		if (cmd == add && arg_count == 2) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
-				// TODO: Failed to create packet (key and/or value too long!)
+				// Failed to create packet (key and/or value too long!)
 				fprintf(stderr, "Error: Invalid arguments to add!\n");
 				continue;
 			}
 
 			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
 				perror("Error: Failed to send add command!");
-				continue; // TODO: Is this needed?
+				continue;
 			}
 
 			if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
-				perror("recv"); // TODO
+				perror("Error: Failed to receive reply to add command!");
 				exit(EXIT_FAILURE);
 			}
 
@@ -114,18 +114,18 @@ int main(int argc, char *argv[]) {
 		} else if (cmd == get_value && arg_count == 1) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, t2)) {
-				// TODO: Failed to create packet (key and/or value too long!)
+				// Failed to create packet (key and/or value too long!)
 				fprintf(stderr, "Make get_value packet\n");
 				continue;
 			}
 
 			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
-				perror("send getvalue");
-				continue; // TODO: Is this needed?
+				perror("Error: Failed to send getvalue command!");
+				continue;
 			}
 
 			if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
-				perror("recv"); // TODO
+				perror("Error: Failed to receive getvalue reply!");
 				exit(EXIT_FAILURE);
 			}
 
@@ -143,19 +143,19 @@ int main(int argc, char *argv[]) {
 		} else if (cmd == get_all && arg_count == 0) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
-				// TODO: Failed to create packet (key and/or value too long!)
+				// Failed to create packet (key and/or value too long!)
 				fprintf(stderr, "Make getall packet\n");
 				continue;
 			}
 
 			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
-				perror("send");
-				continue; // TODO: Is this needed
+				perror("Error: Failed to send getall command!");
+				continue;
 			}
 
 			do {
 				if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
-					perror("recv"); // TODO
+					perror("Error: Failed to receive getvalue reply!");
 					exit(EXIT_FAILURE);
 				}
 
@@ -180,18 +180,18 @@ int main(int argc, char *argv[]) {
 		} else if (cmd == remove_cmd && arg_count == 1) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 1, 1, t1, NULL)) {
-				// TODO: Failed to create packet (key and/or value too long!)
+				// Failed to create packet (key and/or value too long!)
 				fprintf(stderr, "Make remove packet\n");
 				continue;
 			}
 
 			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
-				perror("send remove");
-				continue; // TODO: Is this needed?
+				perror("Error: Failed to send remove command!");
+				continue;
 			}
 
 			if ((recv_bytes = SOCKET_RECEIVE(sockfd, &packet, sizeof(kv_packet), NULL, NULL)) == -1) {
-				perror("recv"); // TODO
+				perror("Error: Failed to receive remove reply!");
 				exit(EXIT_FAILURE);
 			}
 
@@ -209,14 +209,14 @@ int main(int argc, char *argv[]) {
 		} else if (cmd == quit && arg_count == 0) {
 
 			if (!write_packet(&packet, cmd, REQUEST, 0, 0, NULL, NULL)) {
-				// TODO: Failed to create packet (key and/or value too long!)
+				// Failed to create packet (key and/or value too long!)
 				fprintf(stderr, "Make quit packet\n");
 				continue;
 			}
 
 			if (SOCKET_SEND(sockfd, &packet, sizeof(kv_packet), p->ai_addr, p->ai_addrlen) == -1) {
-				perror("send quit");
-				continue; // TODO: Is this needed?
+				perror("Error: Failed to send quit command!");
+				continue;
 			}
 			exit(0);
 

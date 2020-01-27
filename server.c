@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 			addrlen = sizeof(client_addr);
 
 			if ((recv_bytes = SOCKET_RECEIVE(new_fd, &packet, sizeof(kv_packet), (struct sockaddr*) &client_addr, &addrlen)) == -1) {
-				perror("recv");
+				perror("Error: Failed to receive command from client/proxy");
 				exit(EXIT_FAILURE);
 			}
 
@@ -121,7 +121,7 @@ int main(int argc, char *argv[]) {
 					v[string_len] = 0;
 
 					if (!add_kv_bintree(tree, k, v)) {
-						//Failed to add to tree
+						// Failed to add to binary tree
 						printf("Failed to add \"%s\":\"%s\"\n", k, v);
 
 						if (!write_packet(&packet, (kv_message_command) packet.message_command, REPLY, 0, 0, NULL, NULL)) {
